@@ -1,7 +1,6 @@
 import tensorflow as tf
 import os
 
-
 class Logger:
     def __init__(self, sess,config):
         self.sess = sess

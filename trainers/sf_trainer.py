@@ -22,6 +22,7 @@ class SFTrainer(BaseTrain):
             'loss': loss,
             'acc': acc,
         }
+        print "Accuracy: %f"%acc
         self.logger.summarize(cur_it, summaries_dict=summaries_dict)
         self.model.save(self.sess)
 
