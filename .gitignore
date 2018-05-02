@@ -1,1 +1,3 @@
-.pyc
+*.pyc
+experiments
+MNIST_data
