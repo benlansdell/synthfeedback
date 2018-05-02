@@ -1,9 +1,19 @@
-{
+[{
   "exp_name": "backprop",
-  "num_epochs": 10,
-  "num_iter_per_epoch": 10,
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
   "learning_rate": 0.001,
-  "batch_size": 16,
+  "batch_size": 64,
   "state_size": [784],
   "max_to_keep":5
-}
+},
+
+{
+  "exp_name": "feedbackalignment",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.001,
+  "batch_size": 64,
+  "state_size": [784],
+  "max_to_keep":5
+}]
