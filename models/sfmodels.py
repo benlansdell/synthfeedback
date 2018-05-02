@@ -48,11 +48,12 @@ class FAModel(BaseModel):
         #Scale weight initialization
         alpha0 = np.sqrt(2.0/p)
         alpha1 = np.sqrt(2.0/m)
+        alpha2 = 1
 
         #Plus one for bias terms
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W = tf.Variable(rng.randn(m+1,n)*alpha1, name="output_weights", dtype=tf.float32)
-        B = tf.Variable(rng.randn(m+1,n)*alpha0, name="feedback_weights", dtype=tf.float32)
+        B = tf.Variable(rng.randn(m,n)*alpha2, name="feedback_weights", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
@@ -65,16 +66,16 @@ class FAModel(BaseModel):
         with tf.name_scope("loss"):
             #mean squared error
             #cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2/self.config.batch_size
-            cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
-            e = (y_p - self.y)
-            grad_W = tf.gradients(xs=W, ys=cost)[0]
-            #FA
-            #grad_A = tf.matmul(tf.transpose(x), tf.matmul(e, tf.transpose(B)))
-            #BP
-            grad_A = tf.gradients(xs=A, ys=cost)[0]
-            #grad_A = tf.matmul(tf.transpose(self.x), tf.matmul(e, tf.transpose(W)))
+            self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            grad_W = tf.gradients(xs=W, ys=self.loss)[0]
 
-            self.loss = cost 
+            e = (y_p - self.y)
+            h_prime = h*(1-h)
+            #BP
+            #grad_A = tf.gradients(xs=A, ys=cost)[0]
+            #grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime, tf.matmul(e, tf.transpose(W[0:m,:]))))
+            #FA
+            grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime, tf.matmul(e, tf.transpose(B))))
 
             new_W = W.assign(W - self.config.learning_rate*grad_W)
             new_A = A.assign(A - self.config.learning_rate*grad_A)            
