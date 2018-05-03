@@ -19,7 +19,8 @@ from utils.utils import get_args
 #    except:
 #        print("missing or invalid arguments")
 #        exit(0)
-    #Or use default
+
+#Or use default
 config = process_config('./configs/sf.json', 'feedbackalignment')
 #config = process_config('./configs/sf.json', 'backprop')
 create_dirs([config.summary_dir, config.checkpoint_dir])
@@ -32,5 +33,5 @@ logger = LoggerNumpy(sess, config, model)
 trainer = SFTrainer(sess, model, data, config, logger)
 trainer.train()
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()

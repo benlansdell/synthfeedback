@@ -11,7 +11,7 @@ class LoggerNumpy:
         self.config = config
 
         with tf.variable_scope("loss"):
-            nrows = config.num_epochs
+            nrows = config.num_epochs+1
             ncols = len(model.training_metrics)+2
             self.data = np.zeros((nrows, ncols))
 
