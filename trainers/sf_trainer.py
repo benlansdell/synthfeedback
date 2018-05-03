@@ -36,9 +36,4 @@ class SFTrainer(BaseTrain):
         _, loss, acc = self.sess.run([self.model.train_step, self.model.loss, self.model.accuracy],
                                      feed_dict=feed_dict)
         return loss, acc
-
-    def training_metrics(self):
-        batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
-        feed_dict = {self.model.x: batch_x, self.model.y: batch_y, self.model.is_training: True}
-        return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
         

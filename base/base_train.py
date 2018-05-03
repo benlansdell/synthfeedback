@@ -38,4 +38,6 @@ class BaseTrain(object):
         raise NotImplementedError
 
     def training_metrics(self):
-        return []
+        batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_y, self.model.is_training: True}
+        return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)

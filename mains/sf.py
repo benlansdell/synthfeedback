@@ -4,7 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="3"
 import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.sfmodels import BPModel, FAModel, FAModelLinear
+from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, FAModel4
 from trainers.sf_trainer import SFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -21,9 +21,16 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'feedbackalignment_linear'
+model_name = 'feedbackalignment4'
+
 if model_name == 'feedbackalignment':
 	Model = FAModel
+	Data = MNISTDataGenerator
+elif model_name == 'feedbackalignment4':
+	Model = FAModel4
+	Data = MNISTDataGenerator
+elif model_name == 'directfeedbackalignment':
+	Model = DirectFAModel4
 	Data = MNISTDataGenerator
 elif model_name == 'backprop':
 	Model = BPModel

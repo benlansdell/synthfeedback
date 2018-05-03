@@ -8,6 +8,7 @@ class BaseModel(object):
         self.init_global_step()
         # init the epoch counter
         self.init_cur_epoch()
+        self.training_metrics = []
 
     # save function that saves the checkpoint in the path defined in the config file
     def save(self, sess):
