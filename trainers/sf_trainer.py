@@ -19,16 +19,15 @@ class SFTrainer(BaseTrain):
 
         metrics = self.training_metrics()
 
+        cur_ep = self.model.cur_epoch_tensor.eval(self.sess)
         cur_it = self.model.global_step_tensor.eval(self.sess)
-        #Also save loss (1), acc (1), eigenvector alignment (# layers x # units)
-        # 
         summaries_dict = {
             'loss': loss,
             'acc': acc,
             'metrics': metrics,
         }
-        print "Epoch: %d Accuracy: %f"%(cur_it, acc)
-        self.logger.summarize(cur_it, summaries_dict=summaries_dict)
+        print "Epoch: %d Accuracy: %f"%(cur_ep, acc)
+        self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
         self.model.save(self.sess)
 
     def train_step(self):
