@@ -77,6 +77,18 @@ class FAModel(BaseModel):
             #FA
             grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime, tf.matmul(e, tf.transpose(B))))
 
+            #Feedback data for saving
+            #Only take first item in epoch
+            delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
+            delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
+            norm_W = tf.norm(W)
+            norm_B = tf.norm(B)
+            error_FA = tf.norm(delta_bp - delta_fa)
+            alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+
+            #Also need to add eigenvector stuff
+            self.training_metrics = [alignment, norm_W, norm_B, error_FA]
+
             new_W = W.assign(W - self.config.learning_rate*grad_W)
             new_A = A.assign(A - self.config.learning_rate*grad_A)            
             self.train_step = [new_W, new_A]

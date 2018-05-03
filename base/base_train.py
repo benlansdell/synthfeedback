@@ -16,6 +16,11 @@ class BaseTrain(object):
             self.train_epoch()
             self.sess.run(self.model.increment_cur_epoch_tensor)
 
+        #Save logger info if defined
+        save_fn = getattr(self.logger, 'save', None)
+        if callable(save_fn):
+            save_fn()
+
     def train_epoch(self):
         """
         implement the logic of epoch:
@@ -31,3 +36,6 @@ class BaseTrain(object):
         - return any metrics you need to summarize
         """
         raise NotImplementedError
+
+    def training_metrics(self):
+        return []

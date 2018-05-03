@@ -8,7 +8,7 @@ from models.sfmodels import BPModel, FAModel
 from trainers.sf_trainer import SFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
-from utils.logger import Logger
+from utils.logger import LoggerNumpy
 from utils.utils import get_args
 
 #def main():
@@ -28,7 +28,7 @@ model = FAModel(config)
 #model = BPModel(config)
 model.load(sess)
 data = MNISTDataGenerator(config)
-logger = Logger(sess, config)
+logger = LoggerNumpy(sess, config, model)
 trainer = SFTrainer(sess, model, data, config, logger)
 trainer.train()
 
