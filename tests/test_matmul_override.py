@@ -9,6 +9,8 @@ import numpy.random as rng
 
 n_tests = 10
 
+tol = 1e-8
+
 #Load some MNIST data
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 def next_batch(batch_size):
@@ -61,6 +63,8 @@ loss = tf.reduce_sum(tf.pow(y_p-y, 2))/2
 grad_W = tf.gradients(xs=W, ys=loss)[0]
 grad_A_auto = tf.gradients(xs=A, ys = loss)[0]
 
+norms = np.zeros(n_tests)
+
 #Compare to overridden matmul functions
 with tf.Session() as sess:
 	sess.run(tf.global_variables_initializer())
@@ -68,4 +72,8 @@ with tf.Session() as sess:
 		batch_x, batch_y = mnist.train.next_batch(batch_size)
 		feed_dict = {x: batch_x, y: batch_y}
 		[g_A_auto, g_A_man] = sess.run([grad_A_auto, grad_A_manual], feed_dict=feed_dict)
-		print np.linalg.norm(g_A_auto - g_A_man)
+		norms[i] = np.linalg.norm(g_A_auto - g_A_man, 'fro')/g_A_auto.shape[0]/g_A_auto.shape[1]
+
+assert (norms < tol).all(), "Backprop'ed gradients not within tolerance"
+
+print "Passes test to within %e."%tol
