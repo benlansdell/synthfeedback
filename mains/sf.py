@@ -3,8 +3,8 @@ os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 import tensorflow as tf
 
-from data_loader.data_generator import MNISTDataGenerator
-from models.sfmodels import BPModel, FAModel
+from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
+from models.sfmodels import BPModel, FAModel, FAModelLinear
 from trainers.sf_trainer import SFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -20,15 +20,24 @@ from utils.utils import get_args
 #        print("missing or invalid arguments")
 #        exit(0)
 
-#Or use default
-config = process_config('./configs/sf.json', 'feedbackalignment')
-#config = process_config('./configs/sf.json', 'backprop')
+#Select models:
+model_name = 'feedbackalignment_linear'
+if model_name == 'feedbackalignment':
+	Model = FAModel
+	Data = MNISTDataGenerator
+elif model_name == 'backprop':
+	Model = BPModel
+	Data = MNISTDataGenerator
+elif model_name == 'feedbackalignment_linear':
+	Model = FAModelLinear
+	Data = LinearDataGenerator
+
+config = process_config('./configs/sf.json', model_name)
 create_dirs([config.summary_dir, config.checkpoint_dir])
 sess = tf.Session()
-model = FAModel(config)
-#model = BPModel(config)
+model = Model(config)
 model.load(sess)
-data = MNISTDataGenerator(config)
+data = Data(config)
 logger = LoggerNumpy(sess, config, model)
 trainer = SFTrainer(sess, model, data, config, logger)
 trainer.train()
