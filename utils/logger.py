@@ -1,11 +1,10 @@
 import tensorflow as tf
 import os
 
-import tables
 import numpy as np
 
 class LoggerNumpy:
-    #Pickle data instead. Save numpy arrays with data in them, for later plotting, etc
+    #Save numpy arrays with data in them for later plotting, etc
     def __init__(self, sess, config, model):
         self.sess = sess
         self.config = config
@@ -15,15 +14,7 @@ class LoggerNumpy:
             ncols = len(model.training_metrics)+2
             self.data = np.zeros((nrows, ncols))
 
-    # it can summarize scalars and images.
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
-        """
-        :param step: the step of the summary
-        :param summarizer: use the train summary writer or the test one
-        :param scope: variable scope
-        :param summaries_dict: the dict of the summaries values (tag,value)
-        :return:
-        """
         if summaries_dict is not None:
             with tf.variable_scope("loss"):
                 self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']] + summaries_dict['metrics']

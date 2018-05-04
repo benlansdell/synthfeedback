@@ -14,6 +14,9 @@ class DataGenerator(object):
         idx = np.random.choice(500, batch_size)
         yield self.input[idx], self.y[idx]
 
+    def test_batch(self, batch_size):
+        return next_batch(batch_size)
+
 class LinearDataGenerator(object):
     def __init__(self, config):
         self.config = config
@@ -29,6 +32,9 @@ class LinearDataGenerator(object):
         train_y = np.dot(np.dot(train_x, self.T1), self.T2)
         yield train_x, train_y
 
+    def test_batch(self, batch_size):
+        return next_batch(batch_size)
+
 class MNISTDataGenerator(object):
     def __init__(self, config):
         self.config = config
@@ -36,3 +42,6 @@ class MNISTDataGenerator(object):
 
     def next_batch(self, batch_size):
         yield self.mnist.train.next_batch(batch_size)
+
+    def test_batch(self, batch_size):
+        yield self.mnist.test.next_batch(batch_size)

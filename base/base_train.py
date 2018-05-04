@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import numpy as np
 
 class BaseTrain(object):
     def __init__(self, sess, model, data, config, logger):
@@ -17,9 +17,10 @@ class BaseTrain(object):
             self.sess.run(self.model.increment_cur_epoch_tensor)
 
         #Save logger info if defined
-        save_fn = getattr(self.logger, 'save', None)
-        if callable(save_fn):
-            save_fn()
+        if self.logger:
+            save_fn = getattr(self.logger, 'save', None)
+            if callable(save_fn):
+                save_fn()
 
     def train_epoch(self):
         """
@@ -41,3 +42,11 @@ class BaseTrain(object):
         batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, self.model.is_training: True}
         return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
+
+    def test(self):
+        batch_x, batch_y = next(self.data.test_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_y, self.model.is_training: True}
+        losses, accs = self.sess.run([self.model.loss, self.model.accuracy], feed_dict=feed_dict)
+        loss = np.mean(losses)
+        acc = np.mean(accs)
+        return loss, acc
