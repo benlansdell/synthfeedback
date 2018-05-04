@@ -60,13 +60,14 @@ def main():
 
 	#Param search parameters
 	attr = ['learning_rate']
-	N = 3
+	N = 100
 	M = len(attr)
 	ranges = [[-6, -3]]
 	log10_scale = [True]
 
 	test_losses = np.zeros(N)
 	hyperparams = np.zeros((N, M))
+	isnan = np.zeros(N)
 
 	for n in range(N):
 		with tf.Session() as sess:	
@@ -79,7 +80,11 @@ def main():
 			trainer = SFTrainer(sess, model, data, config, None)
 			print 'Hyperparameters: ' + ' '.join([attr[i] + ' = %e'%hyperparam[i]\
 			 for i in range(M)])
-			trainer.train()
+			try:
+				trainer.train()
+			except ValueError:
+				print "Method fails to converge for these parameters"
+				isnan[n] = 1
 			loss, acc = trainer.test()
 			hyperparams[n,:] = hyperparam
 			test_losses[n] = loss
@@ -87,7 +92,7 @@ def main():
 	#Save data for analysis
 	fn = os.path.join(config.summary_dir) + "hyperparameter_search.npz"
 	np.savez(fn, test_losses=test_losses, hyperparams=hyperparams, attr = attr,
-		ranges = ranges, log10_scale = log10_scale)
+		ranges = ranges, log10_scale = log10_scale, isnan = isnan)
 
 if __name__ == '__main__':
 	main()

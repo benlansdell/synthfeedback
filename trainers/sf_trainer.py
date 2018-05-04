@@ -1,6 +1,7 @@
 from base.base_train import BaseTrain
 from tqdm import tqdm
 import numpy as np
+import tensorflow as tf
 
 class SFTrainer(BaseTrain):
     def __init__(self, sess, model, data, config, logger):
@@ -16,6 +17,11 @@ class SFTrainer(BaseTrain):
             accs.append(acc)
         loss = np.mean(losses)
         acc = np.mean(accs)
+
+        #Check for convergence issues...
+        for x in self.model.trainable:
+            if self.sess.run(tf.is_nan(x)).any():
+                raise ValueError("nan encountered. Model does not converge.")
 
         metrics = self.training_metrics()
 

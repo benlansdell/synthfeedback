@@ -65,6 +65,8 @@ class FAModel(BaseModel):
         h_aug = tf.concat([h, e1], 1)
         y_p = tf_matmul_r(h_aug, W, B)
 
+        self.trainable = [A, W]
+
         with tf.name_scope("loss"):
             #mean squared error
             #cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2/self.config.batch_size
