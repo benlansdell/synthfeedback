@@ -21,7 +21,7 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'directfeedbackalignment'
+model_name = 'feedbackalignment'
 
 if model_name == 'feedbackalignment':
 	Model = FAModel

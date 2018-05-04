@@ -2,7 +2,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 
 import tensorflow as tf
-from utils.utils import matmul_fa
+from utils.utils import tf_matmul_r, tf_matmul_l
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 import numpy.random as rng
@@ -54,16 +54,18 @@ grad_A_manual = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime_man, tf.matmu
 
 #FA, computed automatically
 x_aug = tf.concat([x, e0], 1)
-h = tf.sigmoid(matmul_fa(x_aug, A, A))
+h = tf.sigmoid(tf.matmul(x_aug, A))
 h_aug = tf.concat([h, e1], 1)
 #The key line! Replace W with B in any backprop step
-y_p = matmul_fa(h_aug, W, B)
+y_p = tf_matmul_r(h_aug, W, B)
+#y_p = tf.matmul(h_aug, W)
 
 loss = tf.reduce_sum(tf.pow(y_p-y, 2))/2
-grad_W = tf.gradients(xs=W, ys=loss)[0]
+grad_W_auto = tf.gradients(xs=W, ys = loss)[0]
 grad_A_auto = tf.gradients(xs=A, ys = loss)[0]
 
-norms = np.zeros(n_tests)
+norms_W = np.zeros(n_tests)
+norms_A = np.zeros(n_tests)
 
 #Compare to overridden matmul functions
 with tf.Session() as sess:
@@ -71,9 +73,15 @@ with tf.Session() as sess:
 	for i in range(n_tests):
 		batch_x, batch_y = mnist.train.next_batch(batch_size)
 		feed_dict = {x: batch_x, y: batch_y}
+		[g_W_auto, g_W_man] = sess.run([grad_W_auto, grad_W_man], feed_dict=feed_dict)
 		[g_A_auto, g_A_man] = sess.run([grad_A_auto, grad_A_manual], feed_dict=feed_dict)
-		norms[i] = np.linalg.norm(g_A_auto - g_A_man, 'fro')/g_A_auto.shape[0]/g_A_auto.shape[1]
+		norms_W[i] = np.linalg.norm(g_W_auto - g_W_man, 'fro')/g_W_auto.shape[0]/g_W_auto.shape[1]
+		norms_A[i] = np.linalg.norm(g_A_auto - g_A_man, 'fro')/g_A_auto.shape[0]/g_A_auto.shape[1]
 
-assert (norms < tol).all(), "Backprop'ed gradients not within tolerance"
+#print norms_W
+#print norms_A
+
+assert (norms_W < tol).all(), "Backprop'ed gradients not within tolerance"
+assert (norms_A < tol).all(), "Backprop'ed gradients not within tolerance"
 
 print "Passes test to within %e."%tol
