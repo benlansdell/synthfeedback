@@ -4,7 +4,7 @@ import tensorflow as tf
 from numpy import random as rng
 import numpy as np 
 
-from utils.utils import matmul_fa
+from utils.utils import tf_matmul_r, tf_matmul_l
 
 class BPModel(BaseModel):
     def __init__(self, config):
@@ -63,7 +63,7 @@ class FAModel(BaseModel):
         x_aug = tf.concat([self.x, e0], 1)
         h = tf.sigmoid(tf.matmul(x_aug, A))
         h_aug = tf.concat([h, e1], 1)
-        y_p = matmul_fa(h_aug, W, B)
+        y_p = tf_matmul_r(h_aug, W, B)
 
         with tf.name_scope("loss"):
             #mean squared error
@@ -72,10 +72,9 @@ class FAModel(BaseModel):
             grad_W = tf.gradients(xs=W, ys=self.loss)[0]
             grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
-            e = (y_p - self.y)
-
             #Feedback data for saving
             #Only take first item in epoch
+            e = (y_p - self.y)
             delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
             delta_fa = tf.matmul(e, tf.transpose(B[0:m,:]))[0,:]
             norm_W = tf.norm(W)
@@ -124,8 +123,8 @@ class FAModel4(BaseModel):
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
         W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
-        B1 = tf.Variable(rng.randn(m,j)*alpha3, name="feedback_weights1", dtype=tf.float32)
-        B2 = tf.Variable(rng.randn(j,n)*alpha3, name="feedback_weights2", dtype=tf.float32)
+        B1 = tf.Variable(rng.randn(m+1,j)*alpha3, name="feedback_weights1", dtype=tf.float32)
+        B2 = tf.Variable(rng.randn(j+1,n)*alpha3, name="feedback_weights2", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
@@ -133,19 +132,19 @@ class FAModel4(BaseModel):
         x_aug = tf.concat([self.x, e0], 1)
         h1 = tf.sigmoid(tf.matmul(x_aug, A))
         h1_aug = tf.concat([h1, e1], 1)
-        h2 = tf.sigmoid(tf.matmul(h1_aug, W1))
+        h2 = tf.sigmoid(tf_matmul_r(h1_aug, W1, B1))
         h2_aug = tf.concat([h2, e1], 1)
-        y_p = tf.matmul(h2_aug, W2)
+        y_p = tf_matmul_r(h2_aug, W2, B2)
 
         with tf.name_scope("loss"):
             #mean squared error
             #cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2/self.config.batch_size
             self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
+            grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
+            grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
             e = (y_p - self.y)
-            h1_prime = h1*(1-h1)
-            h2_prime = h2*(1-h2)
             #BP Tensorflow
             #grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
             #grad_A = tf.gradients(xs=A, ys=self.loss)[0]
@@ -156,9 +155,6 @@ class FAModel4(BaseModel):
             #grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h1_prime, tf.matmul(d, tf.transpose(W1[0:m,:]))))
             
             #FA
-            d = tf.multiply(h2_prime, tf.matmul(e, tf.transpose(B2)))
-            grad_W1 = tf.matmul(tf.transpose(h1_aug), d)
-            grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h1_prime, tf.matmul(d, tf.transpose(B1))))
 
             #Feedback data for saving
             #Only take first item in epoch
@@ -295,7 +291,7 @@ class FAModelLinear(BaseModel):
         #Plus one for bias terms
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W = tf.Variable(rng.randn(m+1,n)*alpha1, name="output_weights", dtype=tf.float32)
-        B = tf.Variable(rng.randn(m,n)*alpha2, name="feedback_weights", dtype=tf.float32)
+        B = tf.Variable(rng.randn(m+1,n)*alpha2, name="feedback_weights", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
@@ -303,23 +299,16 @@ class FAModelLinear(BaseModel):
         x_aug = tf.concat([self.x, e0], 1)
         h = tf.matmul(x_aug, A)
         h_aug = tf.concat([h, e1], 1)
-        y_p = tf.matmul(h_aug, W)
+        y_p = tf_matmul_r(h_aug, W, B)
 
         with tf.name_scope("loss"):
             #mean squared error
-            #cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2/self.config.batch_size
             self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             grad_W = tf.gradients(xs=W, ys=self.loss)[0]
-
-            e = (y_p - self.y)
-            #BP
-            #grad_A = tf.gradients(xs=A, ys=cost)[0]
-            #grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime, tf.matmul(e, tf.transpose(W[0:m,:]))))
-            #FA
-            grad_A = tf.matmul(tf.transpose(x_aug), tf.matmul(e, tf.transpose(B)))
+            grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
             #Feedback data for saving
-            #Only take first item in epoch
+            e = (y_p - self.y)
             delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
             delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
             norm_W = tf.norm(W)
