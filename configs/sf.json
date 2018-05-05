@@ -46,4 +46,15 @@
   "batch_size": 32,
   "state_size": [30],
   "max_to_keep":5
+},
+
+{
+  "exp_name": "feedbackalignment_autoencoder",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0001,
+  "batch_size": 32,
+  "state_size": [784],
+  "network_size": [500, 2, 500, 784],
+  "max_to_keep":5
 }]

@@ -30,9 +30,11 @@ class SFTrainer(BaseTrain):
         summaries_dict = {
             'loss': loss,
             'acc': acc,
-            'metrics': metrics,
         }
-        print "Epoch: %d Accuracy: %f"%(cur_ep, acc)
+        if len(metrics) > 0:
+            summaries_dict['metrics'] = np.array(metrics)
+
+        print "Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc)
         if self.logger:
             self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
             self.model.save(self.sess)
@@ -43,4 +45,21 @@ class SFTrainer(BaseTrain):
                                                 self.model.is_training: True}
         _, loss, acc = self.sess.run([self.model.train_step, self.model.loss,\
                                     self.model.accuracy], feed_dict=feed_dict)
-        return loss, acc        
+        return loss, acc
+
+class AESFTrainer(SFTrainer):
+    def __init__(self, sess, model, data, config, logger):
+        super(AESFTrainer, self).__init__(sess, model, data, config, logger)
+
+    def train_step(self):
+        batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_x, \
+                                                self.model.is_training: True}
+        _, loss, acc = self.sess.run([self.model.train_step, self.model.loss,\
+                                    self.model.accuracy], feed_dict=feed_dict)
+        return loss, acc
+
+    def training_metrics(self):
+        batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_x, self.model.is_training: True}
+        return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)

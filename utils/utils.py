@@ -23,10 +23,10 @@ def py_func(func, inp, Tout, stateful=True, name=None, grad=None):
 		return tf.py_func(func, inp, Tout, stateful=stateful, name=name)
 
 def np_eigvals(A):
-	return np.linalg.eig(A)[0]
+	return np.linalg.eig(A)[0].astype(np.complex64)
 
 def np_eigvecs(A):
-	return np.linalg.eig(A)[1]
+	return np.linalg.eig(A)[1].astype(np.complex64)
 
 def np_matmul(A_f,x,A_b):
 	return np.dot(A_f,x).astype(np.float32)
@@ -35,16 +35,12 @@ def matmul_l_grad(op, grad):
 	A_f = op.inputs[0]
 	x = op.inputs[1]
 	A_b = op.inputs[2]
-	
 	grad_A = tf.matmul(grad, tf.transpose(x))
-
 	#Backprop
 	#grad_x = tf.matmul(tf.transpose(A_f), grad)
 	#Feedback
 	grad_x = tf.matmul(tf.transpose(A_b), grad)
-
-	grad_Ab = grad
-	
+	grad_Ab = None	
 	return [grad_A, grad_x, grad_Ab]
 		
 def tf_matmul_l(A_f,x,A_b, name=None):
