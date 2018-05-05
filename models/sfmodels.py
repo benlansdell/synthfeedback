@@ -377,7 +377,7 @@ class AEFAModel(BaseModel):
         # third fully connected layer with 2 neurons
         l3 = fc_layer(l2, 50, 2)
         # fourth fully connected layer with 50 neurons and tanh activation
-        l4 = tf.nn.tanh(fc_layer(l3, 2, 50))
+        l4 = tf.nn.tanh(fa_layer(l3, 2, 50))
         # fifth fully connected layer with 50 neurons and tanh activation
         l5 = tf.nn.tanh(fc_layer(l4, 50, 50))
         y_p = fc_layer(l5, 50, 28*28)
