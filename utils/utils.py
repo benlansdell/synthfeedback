@@ -11,6 +11,13 @@ def get_args():
 		metavar='C',
 		default='None',
 		help='The Configuration file')
+
+	argparser.add_argument(
+		'-m', '--modelname',
+		metavar='M',
+		default='None',
+		help='Model name')
+
 	args = argparser.parse_args()
 	return args
 

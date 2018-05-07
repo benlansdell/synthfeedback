@@ -32,7 +32,8 @@ class SFTrainer(BaseTrain):
             'acc': acc,
         }
         if len(metrics) > 0:
-            summaries_dict['metrics'] = np.array(metrics)
+            #summaries_dict['metrics'] = np.array(metrics)
+            summaries_dict['metrics'] = metrics
 
         print "Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc)
         if self.logger:

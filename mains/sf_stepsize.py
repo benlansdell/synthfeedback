@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
@@ -26,16 +27,18 @@ def select_random_hyperparameters(config, attr, ranges, log_scale):
 
 def main():
 	#Load config file from command line
-	#try:
-	#	args = get_args()
-	#	config = process_config(args.config)
-	#except:
-	#	print("Missing or invalid arguments.")
-	#	exit(0)
+	try:
+		args = get_args()
+		config = process_config(args.config)
+		model_name = process_config(args.modelname)
+		#Select models:
+		#model_name = 'feedbackalignment'
+	except:
+		print("Missing or invalid arguments.")
+		exit()
 
-	#Select models:
-	model_name = 'feedbackalignment'
-	
+	model_name = 'backprop4'
+
 	if model_name == 'feedbackalignment':
 		Model = FAModel
 		Data = MNISTDataGenerator
@@ -47,6 +50,9 @@ def main():
 		Data = MNISTDataGenerator
 	elif model_name == 'backprop':
 		Model = BPModel
+		Data = MNISTDataGenerator
+	elif model_name == 'backprop4':
+		Model = BPModel4
 		Data = MNISTDataGenerator
 	elif model_name == 'feedbackalignment_linear':
 		Model = FAModelLinear
@@ -60,7 +66,7 @@ def main():
 
 	#Param search parameters
 	attr = ['learning_rate']
-	N = 100
+	N = 50
 	M = len(attr)
 	ranges = [[-6, -3]]
 	log10_scale = [True]
