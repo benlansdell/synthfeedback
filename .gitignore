@@ -1,3 +1,4 @@
 *.pyc
 experiments
 MNIST_data
+notebooks/.ipynb_checkpoints
