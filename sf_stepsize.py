@@ -27,15 +27,15 @@ def select_random_hyperparameters(config, attr, ranges, log_scale):
 
 def main():
 	#Load config file from command line
-	try:
-		args = get_args()
-		config = process_config(args.config)
-		model_name = process_config(args.modelname)
+	#try:
+	args = get_args()
+		#config = process_config(args.config)
+	model_name = process_config(args.modelname)
 		#Select models:
 		#model_name = 'feedbackalignment'
-	except:
-		print("Missing or invalid arguments.")
-		exit()
+	#except:
+	#	print("Missing or invalid arguments.")
+	#	exit()
 
 	model_name = 'backprop4'
 
