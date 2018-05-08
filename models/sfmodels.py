@@ -16,15 +16,16 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
+def fc_layer_w(prev, input_size, output_size, batch_size):
+    W = weight_variable([input_size+1, output_size])
+    e0 = tf.ones([batch_size, 1], tf.float32)
+    prev_aug = tf.concat([prev, e0], 1)
+    return tf.matmul(prev_aug, W), W
+
 def fc_layer(prev, input_size, output_size):
     W = weight_variable([input_size, output_size])
     b = bias_variable([output_size])
     return tf.matmul(prev, W) + b
-
-def fc_layer_w(prev, input_size, output_size):
-    W = weight_variable([input_size, output_size])
-    b = bias_variable([output_size])
-    return tf.matmul(prev, W) + b, W
 
 def fa_layer(prev, input_size, output_size):
     W = weight_variable([input_size, output_size])
@@ -32,11 +33,12 @@ def fa_layer(prev, input_size, output_size):
     b = bias_variable([output_size])
     return tf_matmul_r(prev, W, B) + b
 
-def fa_layer_w(prev, input_size, output_size):
-    W = weight_variable([input_size, output_size])
-    B = weight_variable([input_size, output_size])
-    b = bias_variable([output_size])
-    return tf_matmul_r(prev, W, B) + b, W, B
+def fa_layer_w(prev, input_size, output_size, batch_size):
+    W = weight_variable([input_size+1, output_size])
+    B = weight_variable([input_size+1, output_size])
+    e0 = tf.ones([batch_size, 1], tf.float32)
+    prev_aug = tf.concat([prev, e0], 1)
+    return tf.matmul(prev_aug, W), W, B
 
 class BPModel(BaseModel):
     def __init__(self, config):
@@ -697,24 +699,43 @@ class AEDFAModel(BaseModel):
 
         network_size = self.config.network_size
         n_layers = len(network_size)
+        batch_size = self.config.batch_size
+
+        alpha1 = np.sqrt(2.0/28/28)
+
+        e0 = tf.ones([batch_size, 1], tf.float32)
+        x_aug = tf.concat([self.x, e0], 1)
 
         # first fully connected layer with 50 neurons using tanh activation
-        h1, W1, B1 = fa_layer_w(self.x, 28*28, 50)
+        h1, W1 = fc_layer_w(self.x, 28*28, 50, batch_size)
+        h1_aug = tf.concat([h1, e0], 1)
         l1 = tf.nn.tanh(h1)
         # second fully connected layer with 50 neurons using tanh activation
-        h2, W2, B2 = fa_layer_w(l1, 50, 50)
+        h2, W2 = fc_layer_w(l1, 50, 50, batch_size)
+        h2_aug = tf.concat([h2, e0], 1)
         l2 = tf.nn.tanh(h2)
         # third fully connected layer with 2 neurons
-        h3, W3, B3 = fa_layer_w(l2, 50, 2)
+        h3, W3 = fc_layer_w(l2, 50, 2, batch_size)
+        h3_aug = tf.concat([h3, e0], 1)
         l3 = tf.nn.tanh(h3)
         # fourth fully connected layer with 50 neurons and tanh activation
-        h4, W4, B4 = fa_layer_w(l3, 2, 50)
+        h4, W4 = fc_layer_w(l3, 2, 50, batch_size)
+        h4_aug = tf.concat([h4, e0], 1)
         l4 = tf.nn.tanh(h4)
         # fifth fully connected layer with 50 neurons and tanh activation
-        h5, W5, B5 = fa_layer_w(l4, 50, 50)
+        h5, W5 = fc_layer_w(l4, 50, 50, batch_size)
+        h5_aug = tf.concat([h5, e0], 1)
         l5 = tf.nn.tanh(h5)
-        h6, W6, B6 = fa_layer_w(l5, 50, 28*28)
+
+        h6, W6 = fc_layer_w(l5, 50, 28*28, batch_size)
+        h6_aug = tf.concat([h6, e0], 1)
         y_p = tf.nn.relu(h6)
+
+        B2 = tf.Variable(rng.randn(network_size[-6],network_size[-1])*alpha1, name="feedback_weights1", dtype=tf.float32)
+        B3 = tf.Variable(rng.randn(network_size[-5],network_size[-1])*alpha1, name="feedback_weights2", dtype=tf.float32)
+        B4 = tf.Variable(rng.randn(network_size[-4],network_size[-1])*alpha1, name="feedback_weights3", dtype=tf.float32)
+        B5 = tf.Variable(rng.randn(network_size[-3],network_size[-1])*alpha1, name="feedback_weights4", dtype=tf.float32)
+        B6 = tf.Variable(rng.randn(network_size[-2],network_size[-1])*alpha1, name="feedback_weights5", dtype=tf.float32)
 
         with tf.name_scope("loss"):
             #mean squared error
@@ -733,12 +754,12 @@ class AEDFAModel(BaseModel):
             #Also need to add eigenvector stuff
             #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
 
-            grad_W1 = tf.matmul(e, tf.transpose(B1))
-            grad_W2 = tf.matmul(e, tf.transpose(B2))
-            grad_W3 = tf.matmul(e, tf.transpose(B3))
-            grad_W4 = tf.matmul(e, tf.transpose(B4))
-            grad_W5 = tf.matmul(e, tf.transpose(B5))
-            grad_W6 = tf.matmul(e, tf.transpose(B6))
+            grad_W1 = tf.matmul(tf.transpose(x_aug), tf.matmul(e, tf.transpose(B2)))
+            grad_W2 = tf.matmul(tf.transpose(h1_aug), tf.matmul(e, tf.transpose(B3)))
+            grad_W3 = tf.matmul(tf.transpose(h2_aug), tf.matmul(e, tf.transpose(B4)))
+            grad_W4 = tf.matmul(tf.transpose(h3_aug), tf.matmul(e, tf.transpose(B5)))
+            grad_W5 = tf.matmul(tf.transpose(h4_aug), tf.matmul(e, tf.transpose(B6)))
+            grad_W6 = tf.matmul(tf.transpose(h5_aug), e)
 
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)

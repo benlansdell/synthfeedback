@@ -90,6 +90,17 @@
 },
 
 {
+  "exp_name": "directfeedbackalignment_autoencoder",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "network_size": [50, 50, 2, 50, 50, 784],
+  "max_to_keep":5
+},
+
+{
   "exp_name": "backprop_autoencoder",
   "num_epochs": 100,
   "num_iter_per_epoch": 1000,
