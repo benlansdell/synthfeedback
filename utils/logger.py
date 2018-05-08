@@ -51,6 +51,15 @@ class Logger:
         layer_grid_summary("Output", output, [28, 28])
         return writer, tf.summary.merge_all()
 
+        writer, summary_op = create_summaries(loss, x, latent, output)
+
+        if i % 500 == 0:
+            summary, train_loss = sess.run([summary_op, loss], 
+                    feed_dict=feed)
+            print("step %d, training loss: %g" % (i, train_loss))
+
+        writer.add_summary(summary, i)
+
     # it can summarize scalars and images.
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
         """
