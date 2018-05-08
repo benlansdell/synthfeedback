@@ -35,7 +35,7 @@ class SFTrainer(BaseTrain):
             #summaries_dict['metrics'] = np.array(metrics)
             summaries_dict['metrics'] = metrics
 
-        print "Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc)
+        print("Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc))
         if self.logger:
             self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
             self.model.save(self.sess)
@@ -64,3 +64,11 @@ class AESFTrainer(SFTrainer):
         batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
         feed_dict = {self.model.x: batch_x, self.model.y: batch_x, self.model.is_training: True}
         return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
+
+    def test(self):
+        batch_x, batch_y = next(self.data.test_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_x, self.model.is_training: True}
+        losses, accs = self.sess.run([self.model.loss, self.model.accuracy], feed_dict=feed_dict)
+        loss = np.mean(losses)
+        acc = np.mean(accs)
+        return loss, acc

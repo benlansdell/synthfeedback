@@ -17,7 +17,10 @@ class LoggerNumpy:
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
         if summaries_dict is not None:
             with tf.variable_scope("loss"):
-                self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']] + summaries_dict['metrics']
+                if 'metrics' in summaries_dict.keys():
+                    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']] + summaries_dict['metrics']
+                else:
+                    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']]
 
     def save(self):
         #Save self.data

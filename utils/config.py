@@ -16,17 +16,17 @@ def get_config_from_json(json_file, exp_name = None):
         idx = 0
         found = False
         if exp_name is None:
-            print "No experiment_name specified, using first in config file."
+            print("No experiment_name specified, using first in config file.")
         else:
             for i in range(len(config_dict)):
                 if config_dict[i]['exp_name'] == exp_name:
                     idx = i
                     found = True
-                    print "Loading options for exp_name '%s'"%exp_name
+                    print("Loading options for exp_name '%s'"%exp_name)
             if not found:
-                print "Cannot find %s, loading first options in config file"%exp_name
+                print("Cannot find %s, loading first options in config file"%exp_name)
     else:
-        print 'Only one experiment found in config file, loading that one.'
+        print('Only one experiment found in config file, loading that one.')
 
     cd = config_dict[idx]
     # convert the dictionary to a namespace using bunch lib

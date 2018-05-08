@@ -1,10 +1,11 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, FAModel4, AEFAModel
+from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, FAModel4, AEFAModel,\
+                            BPModel10, FAModel10, AEDFAModel
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -21,26 +22,44 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'feedbackalignment_autoencoder'
+model_name = 'directfeedbackalignment_autoencoder'
 
 if model_name == 'feedbackalignment':
     Model = FAModel
     Data = MNISTDataGenerator
+    Trainer = SFTrainer
 elif model_name == 'feedbackalignment4':
     Model = FAModel4
     Data = MNISTDataGenerator
+    Trainer = SFTrainer
 elif model_name == 'directfeedbackalignment':
     Model = DirectFAModel4
     Data = MNISTDataGenerator
+    Trainer = SFTrainer
 elif model_name == 'backprop':
     Model = BPModel
     Data = MNISTDataGenerator
+    Trainer = SFTrainer
+elif model_name == 'backprop10':
+    Model = BPModel10
+    Data = MNISTDataGenerator
+    Trainer = SFTrainer
+elif model_name == 'feedbackalignment10':
+    Model = FAModel10
+    Data = MNISTDataGenerator
+    Trainer = SFTrainer
 elif model_name == 'feedbackalignment_linear':
     Model = FAModelLinear
     Data = LinearDataGenerator
+    Trainer = SFTrainer
 elif model_name == 'feedbackalignment_autoencoder':
     Model = AEFAModel
     Data = MNISTDataGenerator
+    Trainer = AESFTrainer
+elif model_name == 'directfeedbackalignment_autoencoder':
+    Model = AEDFAModel
+    Data = MNISTDataGenerator
+    Trainer = AESFTrainer
 
 config = process_config('./configs/sf.json', model_name)
 create_dirs([config.summary_dir, config.checkpoint_dir])
@@ -48,9 +67,11 @@ sess = tf.Session()
 model = Model(config)
 model.load(sess)
 data = Data(config)
-#logger = LoggerNumpy(sess, config, model)
-logger = Logger(sess, config)
-trainer = AESFTrainer(sess, model, data, config, logger)
+logger = LoggerNumpy(sess, config, model)
+#logger = Logger(sess, config)
+#logger = None
+trainer = Trainer(sess, model, data, config, logger)
+#trainer = AESFTrainer(sess, model, data, config, logger)
 trainer.train()
 
 #if __name__ == '__main__':
