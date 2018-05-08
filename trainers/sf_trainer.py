@@ -22,6 +22,8 @@ class SFTrainer(BaseTrain):
         for x in self.model.trainable:
             if self.sess.run(tf.is_nan(x)).any():
                 raise ValueError("nan encountered. Model does not converge.")
+        if np.isnan(loss):
+            raise ValueError("nan encountered. Model does not converge.")
 
         metrics = self.training_metrics()
 

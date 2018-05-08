@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
 
@@ -8,7 +8,7 @@ from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, \
 														BPModel4, FAModel4, \
 														AEFAModel, AEBPModel,\
-														AEDFAModel
+														AEDFAModel, BPModel10, FAModel10
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -49,6 +49,10 @@ def main():
 		Model = FAModel4
 		Data = MNISTDataGenerator
 		Trainer = SFTrainer
+	elif model_name == 'feedbackalignment10':
+		Model = FAModel10
+		Data = MNISTDataGenerator
+		Trainer = SFTrainer
 	elif model_name == 'directfeedbackalignment':
 		Model = DirectFAModel4
 		Data = MNISTDataGenerator
@@ -59,6 +63,10 @@ def main():
 		Trainer = SFTrainer
 	elif model_name == 'backprop4':
 		Model = BPModel4
+		Data = MNISTDataGenerator
+		Trainer = SFTrainer
+	elif model_name == 'backprop10':
+		Model = BPModel10
 		Data = MNISTDataGenerator
 		Trainer = SFTrainer
 	elif model_name == 'feedbackalignment_linear':
@@ -83,7 +91,7 @@ def main():
 
 	#Param search parameters
 	attr = ['learning_rate']
-	N = 1
+	N = 50
 	M = len(attr)
 	ranges = [[-6, -3]]
 	log10_scale = [True]
@@ -101,12 +109,12 @@ def main():
 			model.load(sess)
 			data = Data(config)
 			trainer = Trainer(sess, model, data, config, None)
-			print 'Iter: %d Hyperparameters: '%n + ' '.join([attr[i] + ' = %e'%hyperparam[i]\
-			 for i in range(M)])
+			print('Iter: %d Hyperparameters: '%n + ' '.join([attr[i] + ' = %e'%hyperparam[i]\
+			 for i in range(M)]))
 			try:
 				trainer.train()
 			except ValueError:
-				print "Method fails to converge for these parameters"
+				print("Method fails to converge for these parameters")
 				isnan[n] = 1
 			loss, acc = trainer.test()
 			hyperparams[n,:] = hyperparam
