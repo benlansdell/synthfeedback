@@ -555,6 +555,7 @@ class AEFAModel(BaseModel):
         # fifth fully connected layer with 50 neurons and tanh activation
         l5 = tf.nn.tanh(fa_layer(l4, 50, 50))
         y_p = tf.nn.relu(fa_layer(l5, 50, 28*28))
+        self.y_p = y_p
 
         #W = weight_variable([50, 784])
         #B = weight_variable([50, 784])
@@ -633,6 +634,8 @@ class AEBPModel(BaseModel):
         # fifth fully connected layer with 50 neurons and tanh activation
         l5 = tf.nn.tanh(fc_layer(l4, 50, 50))
         y_p = tf.nn.relu(fc_layer(l5, 50, 28*28))
+
+        self.y_p = y_p
 
         #W = weight_variable([50, 784])
         #B = weight_variable([50, 784])
@@ -730,6 +733,8 @@ class AEDFAModel(BaseModel):
         h6, W6 = fc_layer_w(l5, 50, 28*28, batch_size)
         h6_aug = tf.concat([h6, e0], 1)
         y_p = tf.nn.relu(h6)
+
+        self.y_p = y_p
 
         B2 = tf.Variable(rng.randn(network_size[-6],network_size[-1])*alpha1, name="feedback_weights1", dtype=tf.float32)
         B3 = tf.Variable(rng.randn(network_size[-5],network_size[-1])*alpha1, name="feedback_weights2", dtype=tf.float32)

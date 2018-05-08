@@ -73,13 +73,17 @@ def main():
 		Model = AEBPModel
 		Data = MNISTDataGenerator
 		Trainer = AESFTrainer
+	elif model_name == 'directfeedbackalignment_autoencoder':
+		Model = AEDFAModel
+		Data = MNISTDataGenerator
+		Trainer = AESFTrainer
 
 	config = process_config('./configs/sf.json', model_name)
 	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	#Param search parameters
 	attr = ['learning_rate']
-	N = 50
+	N = 1
 	M = len(attr)
 	ranges = [[-6, -3]]
 	log10_scale = [True]

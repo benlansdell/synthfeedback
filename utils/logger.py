@@ -37,6 +37,20 @@ class Logger:
                                                           self.sess.graph)
         self.test_summary_writer = tf.summary.FileWriter(os.path.join(self.config.summary_dir, "test"))
 
+    def layer_grid_summary(self, name, var, image_dims):
+        prod = np.prod(image_dims)
+        grid = form_image_grid(tf.reshape(var, [BATCH_SIZE, prod]), [GRID_ROWS, 
+            GRID_COLS], image_dims, 1)
+        return tf.summary.image(name, grid)
+    
+    def create_summaries(self, loss, x, latent, output):
+        writer = tf.summary.FileWriter("./logs")
+        tf.summary.scalar("Loss", loss)
+        layer_grid_summary("Input", x, [28, 28])
+        layer_grid_summary("Encoder", latent, [2, 1])
+        layer_grid_summary("Output", output, [28, 28])
+        return writer, tf.summary.merge_all()
+
     # it can summarize scalars and images.
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
         """
