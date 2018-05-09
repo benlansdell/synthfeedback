@@ -1035,3 +1035,131 @@ class BPModel10(BaseModel):
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+##########################################################################################################
+##########################################################################################################
+
+class DFAModel10(BaseModel):
+    #Four layers version
+    def __init__(self, config):
+        super(DFAModel10, self).__init__(config)
+        self.build_model()
+        self.init_saver()
+
+    def build_model(self):
+        self.is_training = tf.placeholder(tf.bool)
+        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float32, shape=[None, 10])
+
+        # set initial feedforward and feedback weights
+        p = self.config.state_size[0]
+        m = 512
+        j = 200
+        n = 10
+
+        #Scale weight initialization
+        alpha0 = np.sqrt(2.0/p)
+        alpha1 = np.sqrt(2.0/m)
+        alpha2 = np.sqrt(2.0/j)
+        alpha3 = 1
+
+        #Plus one for bias terms
+        A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights1", dtype=tf.float32)
+        W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
+        W2 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights3", dtype=tf.float32)
+        W3 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights4", dtype=tf.float32)
+        W4 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights5", dtype=tf.float32)
+        W5 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights5", dtype=tf.float32)
+        W6 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights6", dtype=tf.float32)
+        W7 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights7", dtype=tf.float32)
+        W8 = tf.Variable(rng.randn(j+1,j)*alpha2, name="hidden_weights8", dtype=tf.float32)
+        W9 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
+
+        B1 = tf.Variable(rng.randn(m+1,n)*alpha1, name="feedback_weights1", dtype=tf.float32)
+        B2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights2", dtype=tf.float32)
+        B3 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights3", dtype=tf.float32)
+        B4 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights4", dtype=tf.float32)
+        B5 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights5", dtype=tf.float32)
+        B6 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights6", dtype=tf.float32)
+        B7 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights7", dtype=tf.float32)
+        B8 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights8", dtype=tf.float32)
+        B9 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights9", dtype=tf.float32)
+
+        # network architecture with ones added for bias terms
+        e0 = tf.ones([self.config.batch_size, 1], tf.float32)
+        x_aug = tf.concat([self.x, e0], 1)
+        h1 = tf.nn.relu(tf.matmul(x_aug, A))
+        h1_aug = tf.concat([h1, e0], 1)
+        h2 = tf.nn.relu(tf.matmul(h1_aug, W1))
+        h2_aug = tf.concat([h2, e0], 1)
+        h3 = tf.nn.relu(tf.matmul(h2_aug, W2))
+        h3_aug = tf.concat([h3, e0], 1)
+        h4 = tf.nn.relu(tf.matmul(h3_aug, W3))
+        h4_aug = tf.concat([h4, e0], 1)
+        h5 = tf.nn.relu(tf.matmul(h4_aug, W4))
+        h5_aug = tf.concat([h5, e0], 1)
+        h6 = tf.nn.relu(tf.matmul(h5_aug, W5))
+        h6_aug = tf.concat([h6, e0], 1)
+        h7 = tf.nn.relu(tf.matmul(h6_aug, W6))
+        h7_aug = tf.concat([h7, e0], 1)
+        h8 = tf.nn.relu(tf.matmul(h7_aug, W7))
+        h8_aug = tf.concat([h8, e0], 1)
+        h9 = tf.nn.relu(tf.matmul(h8_aug, W8))
+        h9_aug = tf.concat([h9, e0], 1)
+        y_p = tf.matmul(h9_aug, W9)
+
+        with tf.name_scope("loss"):
+            #mean squared error
+            #cost = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2/self.config.batch_size
+            self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            grad_W9 = tf.gradients(xs=W9, ys=self.loss)[0]
+            grad_W8 = tf.gradients(xs=W8, ys=self.loss)[0]
+            grad_W7 = tf.gradients(xs=W7, ys=self.loss)[0]
+            grad_W6 = tf.gradients(xs=W6, ys=self.loss)[0]
+            grad_W5 = tf.gradients(xs=W5, ys=self.loss)[0]
+            grad_W4 = tf.gradients(xs=W4, ys=self.loss)[0]
+            grad_W3 = tf.gradients(xs=W3, ys=self.loss)[0]
+            grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
+            grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
+            grad_A = tf.gradients(xs=A, ys=self.loss)[0]
+
+            e = (y_p - self.y)
+            #BP Tensorflow
+            #grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
+            #grad_A = tf.gradients(xs=A, ys=self.loss)[0]
+            
+            #BP manually
+            #d = tf.multiply(h2_prime, tf.matmul(e, tf.transpose(W2[0:j,:])))
+            #grad_W1 = tf.matmul(tf.transpose(h1_aug), d)
+            #grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h1_prime, tf.matmul(d, tf.transpose(W1[0:m,:]))))
+            
+            #FA
+
+            #Feedback data for saving
+            #Only take first item in epoch
+            #delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
+            #delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
+            #norm_W = tf.norm(W)
+            #norm_B = tf.norm(B)
+            #error_FA = tf.norm(delta_bp - delta_fa)
+            #alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+
+            #Also need to add eigenvector stuff
+            #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
+            new_W9 = W9.assign(W9 - self.config.learning_rate*grad_W9)
+            new_W8 = W8.assign(W8 - self.config.learning_rate*grad_W8)
+            new_W7 = W7.assign(W7 - self.config.learning_rate*grad_W7)
+            new_W6 = W6.assign(W6 - self.config.learning_rate*grad_W6)
+            new_W5 = W5.assign(W5 - self.config.learning_rate*grad_W5)
+            new_W4 = W4.assign(W4 - self.config.learning_rate*grad_W4)
+            new_W3 = W3.assign(W3 - self.config.learning_rate*grad_W3)
+            new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
+            new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
+            new_A = A.assign(A - self.config.learning_rate*grad_A)            
+            self.train_step = [new_W9, new_W8, new_W7, new_W6, new_W5, new_W4, new_W3, new_W2, new_W1, new_A]
+            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    def init_saver(self):
+        # here you initialize the tensorflow saver that will be used in saving the checkpoints.
+        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
