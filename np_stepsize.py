@@ -5,7 +5,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.npmodels import NPModel
+from models.npmodels import NPModel, NPModel4, DirectNPModel4
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -44,6 +44,14 @@ def main():
 		Trainer = SFTrainer
 	elif model_name == 'backprop':
 		Model = BPModel
+		Data = MNISTDataGenerator
+		Trainer = SFTrainer
+	elif model_name == 'nodepert4':
+		Model = NPModel4
+		Data = MNISTDataGenerator
+		Trainer = SFTrainer
+	elif model_name == 'directnodepert4':
+		Model = DirectNPModel4
 		Data = MNISTDataGenerator
 		Trainer = SFTrainer
 	#elif model_name == 'feedbackalignment4':
