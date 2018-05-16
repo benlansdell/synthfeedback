@@ -42,5 +42,17 @@
   "batch_size": 32,
   "state_size": [784],
   "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert_sanity",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0005,
+  "lmda_learning_rate": 0.0,
+  "var_xi": 1e-1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
 }
 ]

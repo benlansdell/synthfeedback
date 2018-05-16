@@ -137,8 +137,8 @@ class NPModel4(BaseModel):
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
         W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
-        B1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="feedback_weights1", dtype=tf.float32)
-        B2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights2", dtype=tf.float32)
+        B1 = tf.Variable(rng.randn(m+1,j)*alpha3, name="feedback_weights1", dtype=tf.float32)
+        B2 = tf.Variable(rng.randn(j+1,n)*alpha3, name="feedback_weights2", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
@@ -156,8 +156,8 @@ class NPModel4(BaseModel):
 
         #Compute unperturbed output
         h2_0 = tf.sigmoid(tf_matmul_r(h1_aug, W1, B1))
-        h2_0_aug = tf.concat([h2, e1], 1)
-        y_p_0 = tf.matmul(h2_0_aug, W2)
+        h2_0_aug = tf.concat([h2_0, e1], 1)
+        y_p_0 = tf_matmul_r(h2_0_aug, W2, B2)
 
         self.trainable = [A, W1, W2, B1, B2]
 
@@ -165,17 +165,17 @@ class NPModel4(BaseModel):
             #mean squared error
             self.loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             self.loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2))/2
-            e = (y_p - self.y)
-            h1_prime = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
-            h2_prime = tf.multiply(h2_aug, 1-h2_aug)[:,0:j]
+            e = (y_p_0 - self.y)
+            h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
+            h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
 
             #Compute updates for W and A (based on B)
             grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
             lmda2 = tf.matmul(e, tf.transpose(B2[0:j,:]))
-            d2 = np.multiply(h2_prime, lmda2)
+            d2 = np.multiply(h2_prime_0, lmda2)
             grad_W1 = tf.matmul(tf.transpose(h1_aug), d2)
             lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
-            d1 = np.multiply(h1_prime, lmda1)
+            d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
             grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi, d2)
             grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi, e)
@@ -245,8 +245,8 @@ class DirectNPModel4(BaseModel):
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
         W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
-        B1 = tf.Variable(rng.randn(m+1,n)*alpha1, name="feedback_weights1", dtype=tf.float32)
-        B2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights2", dtype=tf.float32)
+        B1 = tf.Variable(rng.randn(m+1,n)*alpha3, name="feedback_weights1", dtype=tf.float32)
+        B2 = tf.Variable(rng.randn(j+1,n)*alpha3, name="feedback_weights2", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)

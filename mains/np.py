@@ -21,7 +21,7 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'directnodepert4'
+model_name = 'nodepert_sanity'
 
 if model_name == 'nodepert':
     Model = NPModel
@@ -31,6 +31,9 @@ elif model_name == 'nodepert4':
     Data = MNISTDataGenerator
 elif model_name == 'directnodepert4':
     Model = DirectNPModel4
+    Data = MNISTDataGenerator
+elif model_name == 'nodepert_sanity':
+    Model = NPModel4
     Data = MNISTDataGenerator
 #elif model_name == 'directfeedbackalignment':
 #    Model = DirectFAModel4

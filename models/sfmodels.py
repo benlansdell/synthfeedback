@@ -40,7 +40,7 @@ def fa_layer_w(prev, input_size, output_size, batch_size):
     prev_aug = tf.concat([prev, e0], 1)
     return tf.matmul(prev_aug, W), W, B
 
-def align(x, y):
+def tf_align(x, y):
     return tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)
 
 class BPModel(BaseModel):
@@ -269,14 +269,19 @@ class FAModel4(BaseModel):
             grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
             e = (y_p - self.y)
+            h1_prime = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
+            h2_prime = tf.multiply(h2_aug, 1-h2_aug)[:,0:j]
+
             #FA
-            d2 = tf.multiply(h2_prime, tf.matmul(e, tf.transpose(B2)))
+            lmda2 = tf.matmul(e, tf.transpose(B2[0:j,:]))
+            d2 = np.multiply(h2_prime, lmda2)
+
             #Feedback data for saving
             #Only take first item in epoch
-            delta_bp1 = tf.matmul(d2, tf.transpose(W1[0:m,:]))[0,:]
-            delta_fa1 = tf.matmul(d2, tf.transpose(B1))[0,:]
             delta_bp2 = tf.matmul(e, tf.transpose(W2[0:m,:]))[0,:]
-            delta_fa2 = tf.matmul(e, tf.transpose(B2))[0,:]
+            delta_fa2 = tf.matmul(e, tf.transpose(B2[0:m,:]))[0,:]
+            delta_bp1 = tf.matmul(d2, tf.transpose(W1[0:m,:]))[0,:]
+            delta_fa1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))[0,:]
             norm_W1 = tf.norm(W1)
             norm_B1 = tf.norm(B1)
             norm_W2 = tf.norm(W2)
@@ -286,10 +291,12 @@ class FAModel4(BaseModel):
             alignment1 = tf_align(delta_fa1, delta_bp1)
             alignment2 = tf_align(delta_fa2, delta_bp2)
 
-            evals = tf_eigvals(tf.matmul(tf.transpose(B), W))
-            evecs = tf_eigvecs(tf.matmul(tf.transpose(B), W))
+            #evals = tf_eigvals(tf.matmul(tf.transpose(B), W))
+            #evecs = tf_eigvecs(tf.matmul(tf.transpose(B), W))
 
-            self.training_metrics = [alignment1, norm_W1, norm_B1, error_FA1, alignment2, norm_W2, norm_B2, error_FA2]
+            #self.training_metrics = [alignment1, norm_W1, norm_B1, error_FA1, alignment2, norm_W2, norm_B2, error_FA2]
+            #for idx in range(n):
+                #Compute alignment with evecs of 
 
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
