@@ -40,6 +40,9 @@ def fa_layer_w(prev, input_size, output_size, batch_size):
     prev_aug = tf.concat([prev, e0], 1)
     return tf.matmul(prev_aug, W), W, B
 
+def align(x, y):
+    return tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)
+
 class BPModel(BaseModel):
     def __init__(self, config):
         super(BPModel, self).__init__(config)
@@ -266,28 +269,27 @@ class FAModel4(BaseModel):
             grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
             e = (y_p - self.y)
-            #BP Tensorflow
-            #grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
-            #grad_A = tf.gradients(xs=A, ys=self.loss)[0]
-            
-            #BP manually
-            #d = tf.multiply(h2_prime, tf.matmul(e, tf.transpose(W2[0:j,:])))
-            #grad_W1 = tf.matmul(tf.transpose(h1_aug), d)
-            #grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h1_prime, tf.matmul(d, tf.transpose(W1[0:m,:]))))
-            
             #FA
-
+            d2 = tf.multiply(h2_prime, tf.matmul(e, tf.transpose(B2)))
             #Feedback data for saving
             #Only take first item in epoch
-            #delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
-            #delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
-            #norm_W = tf.norm(W)
-            #norm_B = tf.norm(B)
-            #error_FA = tf.norm(delta_bp - delta_fa)
-            #alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            delta_bp1 = tf.matmul(d2, tf.transpose(W1[0:m,:]))[0,:]
+            delta_fa1 = tf.matmul(d2, tf.transpose(B1))[0,:]
+            delta_bp2 = tf.matmul(e, tf.transpose(W2[0:m,:]))[0,:]
+            delta_fa2 = tf.matmul(e, tf.transpose(B2))[0,:]
+            norm_W1 = tf.norm(W1)
+            norm_B1 = tf.norm(B1)
+            norm_W2 = tf.norm(W2)
+            norm_B2 = tf.norm(B2)
+            error_FA1 = tf.norm(delta_bp1 - delta_fa1)
+            error_FA2 = tf.norm(delta_bp2 - delta_fa2)
+            alignment1 = tf_align(delta_fa1, delta_bp1)
+            alignment2 = tf_align(delta_fa2, delta_bp2)
 
-            #Also need to add eigenvector stuff
-            #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
+            evals = tf_eigvals(tf.matmul(tf.transpose(B), W))
+            evecs = tf_eigvecs(tf.matmul(tf.transpose(B), W))
+
+            self.training_metrics = [alignment1, norm_W1, norm_B1, error_FA1, alignment2, norm_W2, norm_B2, error_FA2]
 
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
@@ -367,15 +369,27 @@ class DirectFAModel4(BaseModel):
 
             #Feedback data for saving
             #Only take first item in epoch
-            #delta_bp = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
-            #delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
-            #norm_W = tf.norm(W)
-            #norm_B = tf.norm(B)
-            #error_FA = tf.norm(delta_bp - delta_fa)
-            #alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            delta_bp1 = tf.matmul(e, tf.transpose(W1[0:m,:]))[0,:]
+            delta_fa1 = tf.matmul(e, tf.transpose(B1))[0,:]
+            delta_bp2 = tf.matmul(e, tf.transpose(W2[0:m,:]))[0,:]
+            delta_fa2 = tf.matmul(e, tf.transpose(B2))[0,:]
+            norm_W1 = tf.norm(W1)
+            norm_B1 = tf.norm(B1)
+            norm_W2 = tf.norm(W2)
+            norm_B2 = tf.norm(B2)
+            error_FA1 = tf.norm(delta_bp1 - delta_fa1)
+            error_FA2 = tf.norm(delta_bp2 - delta_fa2)
+            alignment1 = tf_align(delta_fa1, delta_bp1)
+            alignment2 = tf_align(delta_fa2, delta_bp2)
 
-            #Also need to add eigenvector stuff
-            #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
+            evals = tf_eigvals(tf.matmul(tf.transpose(B), W))
+            evecs = tf_eigvecs(tf.matmul(tf.transpose(B), W))
+
+            self.training_metrics = [alignment1, norm_W1, norm_B1, error_FA1, alignment2, norm_W2, norm_B2, error_FA2]
+            #Compute alignment between e and evecs of B^TW
+
+
+            #Compute alignment between input at layer and singular values of W, B
 
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
