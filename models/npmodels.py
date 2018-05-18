@@ -25,17 +25,18 @@ def weight_w_bias(shape):
     initial = tf.concat([W, b], 0)
     return tf.Variable(initial)
 
-def fc_layer(prev, input_size, output_size):
-    W = weight_variable([input_size, output_size])
-    b = bias_variable([output_size])
-    return tf.matmul(prev, W) + b
+def fc_layer(prev, input_size, output_size, config):
+    W = weight_variable([input_size+1, output_size])
+    e = tf.ones([config.batch_size, 1], tf.float32)
+    prev_aug = tf.concat([prev, e], 1)
+    return tf.matmul(prev_aug, W), W, prev_aug
 
 def fa_layer(prev, input_size, output_size, config):
     B = weight_variable([input_size+1, output_size])
     W = weight_w_bias([input_size, output_size])
     e = tf.ones([config.batch_size, 1], tf.float32)
     prev_aug = tf.concat([prev, e], 1)
-    return tf_matmul_r(prev_aug, W, B), W, B, prev_aug
+    return tf_matmul_r(prev_aug, W, B), W, B
 
 def fc_layer_noise(prev, W, var_xi, config):
     e = tf.ones([config.batch_size, 1], tf.float32)
@@ -361,21 +362,21 @@ class AENPModel(BaseModel):
         var_xi = self.config.var_xi
 
         # first fully connected layer with 50 neurons using tanh activation
-        n1, W1, B1, x_aug = fa_layer(self.x, 28*28, 50, self.config)
+        n1, W1, B1 = fa_layer(self.x, 28*28, 50, self.config)
         l1 = tf.nn.tanh(n1)
         # second fully connected layer with 50 neurons using tanh activation
-        n2, W2, B2, l1_aug = fa_layer(l1, 50, 50, self.config)
+        n2, W2, B2 = fa_layer(l1, 50, 50, self.config)
         l2 = tf.nn.tanh(n2)
         # third fully connected layer with 2 neurons
-        n3, W3, B3, l2_aug = fa_layer(l2, 50, 2, self.config)
+        n3, W3, B3 = fa_layer(l2, 50, 2, self.config)
         l3 = n3
         # fourth fully connected layer with 50 neurons and tanh activation
-        n4, W4, B4, l3_aug = fa_layer(l3, 2, 50, self.config)
+        n4, W4, B4 = fa_layer(l3, 2, 50, self.config)
         l4 = tf.nn.tanh(n4)
         # fifth fully connected layer with 50 neurons and tanh activation
-        n5, W5, B5, l4_aug = fa_layer(l4, 50, 50, self.config)
+        n5, W5, B5 = fa_layer(l4, 50, 50, self.config)
         l5 = tf.nn.tanh(n5)
-        y_p, W6, B6, l5_aug = fa_layer(l5, 50, 28*28, self.config)
+        y_p, W6, B6 = fa_layer(l5, 50, 28*28, self.config)
 
         #Add noise to response
         # first fully connected layer with 50 neurons using tanh activation
@@ -436,6 +437,123 @@ class AENPModel(BaseModel):
             grad_B4 = tf.concat([grad_B4, tf.zeros([1, 50], tf.float32)], 0)
             grad_B5 = tf.concat([grad_B5, tf.zeros([1, 50], tf.float32)], 0)
             grad_B6 = tf.concat([grad_B6, tf.zeros([1, 784], tf.float32)], 0)
+
+            #Also need to add eigenvector stuff
+            #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
+
+            new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
+            new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
+            new_W3 = W3.assign(W3 - self.config.learning_rate*grad_W3)
+            new_W4 = W4.assign(W4 - self.config.learning_rate*grad_W4)
+            new_W5 = W5.assign(W5 - self.config.learning_rate*grad_W5)
+            new_W6 = W6.assign(W6 - self.config.learning_rate*grad_W6)
+
+            new_B2 = B2.assign(B2 - self.config.lmda_learning_rate*grad_B2)
+            new_B3 = B3.assign(B3 - self.config.lmda_learning_rate*grad_B3)
+            new_B4 = B4.assign(B4 - self.config.lmda_learning_rate*grad_B4)
+            new_B5 = B5.assign(B5 - self.config.lmda_learning_rate*grad_B5)
+            new_B6 = B6.assign(B6 - self.config.lmda_learning_rate*grad_B6)
+            self.train_step = [new_W1, new_W2, new_W3, new_W4, new_W5, new_W6, 
+                                new_B2, new_B3, new_B4, new_B5, new_B6]
+
+            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    def init_saver(self):
+        # here you initialize the tensorflow saver that will be used in saving the checkpoints.
+        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+#####################################################################################
+#####################################################################################
+
+class AEDFANPModel(BaseModel):
+    #Auto encoder NP model
+    def __init__(self, config):
+        super(AEDFANPModel, self).__init__(config)
+        self.build_model()
+        self.init_saver()
+
+    def build_model(self):
+        self.is_training = tf.placeholder(tf.bool)
+        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+
+        alpha = 1.0
+
+        #Define random feedback matrices
+        B2 = tf.Variable(rng.randn(50,28*28)*alpha, name="feedback_weights", dtype=tf.float32)
+        B3 = tf.Variable(rng.randn(50,28*28)*alpha, name="feedback_weights", dtype=tf.float32)
+        B4 = tf.Variable(rng.randn(2,28*28)*alpha, name="feedback_weights", dtype=tf.float32)
+        B5 = tf.Variable(rng.randn(50,28*28)*alpha, name="feedback_weights", dtype=tf.float32)
+        B6 = tf.Variable(rng.randn(50,28*28)*alpha, name="feedback_weights", dtype=tf.float32)
+
+        var_xi = self.config.var_xi
+
+        # first fully connected layer with 50 neurons using tanh activation
+        n1, W1, x_aug = fc_layer(self.x, 28*28, 50, self.config)
+        l1 = tf.nn.tanh(n1)
+        # second fully connected layer with 50 neurons using tanh activation
+        n2, W2, l1_aug = fc_layer(l1, 50, 50, self.config)
+        l2 = tf.nn.tanh(n2)
+        # third fully connected layer with 2 neurons
+        n3, W3, l2_aug = fc_layer(l2, 50, 2, self.config)
+        l3 = n3
+        # fourth fully connected layer with 50 neurons and tanh activation
+        n4, W4, l3_aug = fc_layer(l3, 2, 50, self.config)
+        l4 = tf.nn.tanh(n4)
+        # fifth fully connected layer with 50 neurons and tanh activation
+        n5, W5, l4_aug = fc_layer(l4, 50, 50, self.config)
+        l5 = tf.nn.tanh(n5)
+        y_p, W6, l5_aug = fc_layer(l5, 50, 28*28, self.config)
+
+        #Add noise to response
+        # first fully connected layer with 50 neurons using tanh activation
+        n1_p, xi1 = fc_layer_noise(self.x, W1, var_xi, self.config)
+        l1_p = tf.nn.tanh(n1_p)
+        # second fully connected layer with 50 neurons using tanh activation
+        n2_p, xi2 = fc_layer_noise(l1_p, W2, var_xi, self.config)
+        l2_p = tf.nn.tanh(n2_p)
+        # third fully connected layer with 2 neurons
+        n3_p, xi3 = fc_layer_noise(l2_p, W3, var_xi, self.config)
+        l3_p = n3_p
+        # fourth fully connected layer with 50 neurons and tanh activation
+        n4_p, xi4 = fc_layer_noise(l3_p, W4, var_xi, self.config)
+        l4_p = tf.nn.tanh(n4_p)
+        # fifth fully connected layer with 50 neurons and tanh activation
+        n5_p, xi5 = fc_layer_noise(l4_p, W5, var_xi, self.config)
+        l5_p = tf.nn.tanh(n5_p)
+        y_pp, xi6 = fc_layer_noise(l5_p, W6, var_xi, self.config)
+
+        self.y_p = y_p
+
+        with tf.name_scope("loss"):
+            #mean squared error
+            self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            self.loss_p = tf.reduce_sum(tf.pow(y_pp-self.y, 2))/2
+
+            #Direct feedback alignment. 
+            e = y_p - self.y
+
+            l1_sigma = 1 - tf.multiply(l1, l1)
+            l2_sigma = 1 - tf.multiply(l2, l2)
+            l3_sigma = 1
+            l4_sigma = 1 - tf.multiply(l4, l4)
+            l5_sigma = 1 - tf.multiply(l5, l5)
+
+            #Updates to W matrices (DFA)
+            grad_W1 = tf.matmul(tf.transpose(x_aug),tf.multiply(tf.matmul(e, tf.transpose(B2)), l1_sigma))
+            grad_W2 = tf.matmul(tf.transpose(l1_aug),tf.multiply(tf.matmul(e, tf.transpose(B3)), l2_sigma))
+            grad_W3 = tf.matmul(tf.transpose(l2_aug),tf.multiply(tf.matmul(e, tf.transpose(B4)), l3_sigma))
+            grad_W4 = tf.matmul(tf.transpose(l3_aug),tf.multiply(tf.matmul(e, tf.transpose(B5)), l4_sigma))
+            grad_W5 = tf.matmul(tf.transpose(l4_aug),tf.multiply(tf.matmul(e, tf.transpose(B6)), l5_sigma))
+            grad_W6 = tf.matmul(tf.transpose(l5_aug),e)
+
+            #Updates to B matrices (NP)
+            grad_B2 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B2)) - xi1*(self.loss_p - self.loss)/var_xi),e)
+            grad_B3 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B3)) - xi2*(self.loss_p - self.loss)/var_xi),e)
+            grad_B4 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B4)) - xi3*(self.loss_p - self.loss)/var_xi),e)
+            grad_B5 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B5)) - xi4*(self.loss_p - self.loss)/var_xi),e)
+            grad_B6 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B6)) - xi5*(self.loss_p - self.loss)/var_xi),e)
 
             #Also need to add eigenvector stuff
             #self.training_metrics = [alignment, norm_W, norm_B, error_FA]

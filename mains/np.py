@@ -4,7 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="3"
 import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.npmodels import NPModel, NPModel4, DirectNPModel4, AENPModel #, FAModel4, AEFAModel
+from models.npmodels import NPModel, NPModel4, DirectNPModel4, AENPModel, AEDFANPModel#, AEFAModel
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -21,7 +21,7 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'nodepert_autoencoder'
+model_name = 'nodepert_dfa_autoencoder'
 
 if model_name == 'nodepert':
     Model = NPModel
@@ -41,6 +41,10 @@ elif model_name == 'nodepert_sanity':
     Trainer = SFTrainer
 elif model_name == 'nodepert_autoencoder':
     Model = AENPModel
+    Data = MNISTDataGenerator
+    Trainer = AESFTrainer
+elif model_name == 'nodepert_dfa_autoencoder':
+    Model = AEDFANPModel
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 #elif model_name == 'directfeedbackalignment':
