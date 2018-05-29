@@ -541,7 +541,7 @@ class AEDFANPModel(BaseModel):
             l5_sigma = 1 - tf.multiply(l5, l5)
 
             #Updates to W matrices (DFA)
-            grad_W1 = tf.matmul(tf.transpose(x_aug),tf.multiply(tf.matmul(e, tf.transpose(B2)), l1_sigma))
+            grad_W1 = tf.matmul(tf.transpose(x_aug), tf.multiply(tf.matmul(e, tf.transpose(B2)), l1_sigma))
             grad_W2 = tf.matmul(tf.transpose(l1_aug),tf.multiply(tf.matmul(e, tf.transpose(B3)), l2_sigma))
             grad_W3 = tf.matmul(tf.transpose(l2_aug),tf.multiply(tf.matmul(e, tf.transpose(B4)), l3_sigma))
             grad_W4 = tf.matmul(tf.transpose(l3_aug),tf.multiply(tf.matmul(e, tf.transpose(B5)), l4_sigma))
