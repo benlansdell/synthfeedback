@@ -41,7 +41,7 @@ class BaseTrain(object):
     def training_metrics(self):
         batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, self.model.is_training: True}
-        return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
+        return self.model.training_metric_tags, self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
 
     def test(self):
         batch_x, batch_y = next(self.data.test_batch(self.config.batch_size))

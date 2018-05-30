@@ -67,7 +67,7 @@ model = Model(config)
 model.load(sess)
 data = Data(config)
 #logger = LoggerNumpy(sess, config, model)
-logger = LoggerNumpy(sess, config, model)
+logger = Logger(sess, config)
 trainer = Trainer(sess, model, data, config, logger)
 trainer.train()
 

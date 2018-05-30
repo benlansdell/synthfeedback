@@ -25,7 +25,7 @@ class SFTrainer(BaseTrain):
         if np.isnan(loss):
             raise ValueError("nan encountered. Model does not converge.")
 
-        metrics = self.training_metrics()
+        metric_tags, metrics = self.training_metrics()
 
         cur_ep = self.model.cur_epoch_tensor.eval(self.sess)
         cur_it = self.model.global_step_tensor.eval(self.sess)
@@ -33,9 +33,10 @@ class SFTrainer(BaseTrain):
             'loss': loss,
             'acc': acc,
         }
-        if len(metrics) > 0:
+
+        for idx in range(len(metrics)):
             #summaries_dict['metrics'] = np.array(metrics)
-            summaries_dict['metrics'] = metrics
+            summaries_dict[metric_tags[idx]] = metrics[idx]
 
         print("Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc))
         if self.logger:
@@ -70,7 +71,7 @@ class AESFTrainer(SFTrainer):
             if self.sess.run(tf.is_nan(x)).any():
                 raise ValueError("nan encountered. Model does not converge.")
 
-        metrics = self.training_metrics()
+        metric_tags, metrics = self.training_metrics()
 
         ae_input, ae_output = self.images()
 
@@ -83,9 +84,9 @@ class AESFTrainer(SFTrainer):
             'input': ae_input,
             'output': ae_output
         }
-        if len(metrics) > 0:
+        for idx in range(len(metrics)):
             #summaries_dict['metrics'] = np.array(metrics)
-            summaries_dict['metrics'] = metrics
+            summaries_dict[metric_tags[idx]] = metrics[idx]
 
         print("Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc))
         if self.logger:
@@ -111,7 +112,7 @@ class AESFTrainer(SFTrainer):
     def training_metrics(self):
         batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
         feed_dict = {self.model.x: batch_x, self.model.y: batch_x, self.model.is_training: True}
-        return self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
+        return self.model.training_metric_tags, self.sess.run(self.model.training_metrics, feed_dict=feed_dict)
 
     def test(self):
         batch_x, batch_y = next(self.data.test_batch(self.config.batch_size))

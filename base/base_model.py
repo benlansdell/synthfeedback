@@ -8,6 +8,7 @@ class BaseModel(object):
         self.init_global_step()
         # init the epoch counter
         self.init_cur_epoch()
+        self.training_metric_tags = []
         self.training_metrics = []
         self.trainable = []
 
