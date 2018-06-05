@@ -22,6 +22,11 @@ def get_args():
 		metavar='n',
 		default=1,
 		help='Number of repetitions')
+	argparser.add_argument(
+		'-r', '--rmdirs',
+		metavar='n',
+		default=False,
+		help='Whether to rm dirs and start from scratch')
 	args = argparser.parse_args()
 	return args
 

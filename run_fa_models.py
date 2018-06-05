@@ -83,8 +83,8 @@ def main():
 	#	Data = MNISTDataGenerator
 	#	Trainer = AESFTrainer
 
-	config = process_config('./configs/np_optimized.json', model_name)
-	#config = process_config('./configs/sf_optimized.json', model_name)
+	#config = process_config('./configs/np_optimized.json', model_name)
+	config = process_config('./configs/sf_optimized.json', model_name)
 	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	#Remove summary dir, but not hyperparams
