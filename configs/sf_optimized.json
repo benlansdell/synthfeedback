@@ -1,7 +1,7 @@
 [{
   "exp_name": "backprop",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.001,
   "batch_size": 16,
   "state_size": [784],
@@ -10,8 +10,8 @@
 
 {
   "exp_name": "backprop4",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.001,
   "batch_size": 16,
   "state_size": [784],
@@ -20,8 +20,8 @@
 
 {
   "exp_name": "backprop10",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 16,
   "state_size": [784],
@@ -30,8 +30,8 @@
 
 {
   "exp_name": "feedbackalignment",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 32,
   "state_size": [784],
@@ -40,8 +40,8 @@
 
 {
   "exp_name": "feedbackalignment4",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0005,
   "batch_size": 32,
   "state_size": [784],
@@ -50,8 +50,8 @@
 
 {
   "exp_name": "feedbackalignment10",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 1e-5,
   "batch_size": 32,
   "state_size": [784],
@@ -60,8 +60,8 @@
 
 {
   "exp_name": "directfeedbackalignment",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 32,
   "state_size": [784],
@@ -70,7 +70,7 @@
 
 {
   "exp_name": "feedbackalignment_linear",
-  "num_epochs": 100,
+  "num_epochs": 1000,
   "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 32,
@@ -80,8 +80,8 @@
 
 {
   "exp_name": "feedbackalignment_autoencoder",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 32,
   "state_size": [784],
@@ -91,8 +91,8 @@
 
 {
   "exp_name": "directfeedbackalignment_autoencoder",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 1e-5,
   "batch_size": 32,
   "state_size": [784],
@@ -102,8 +102,8 @@
 
 {
   "exp_name": "backprop_autoencoder",
-  "num_epochs": 100,
-  "num_iter_per_epoch": 1000,
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 100,
   "learning_rate": 0.0001,
   "batch_size": 32,
   "state_size": [784],

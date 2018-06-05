@@ -107,7 +107,7 @@ def main():
 
 	for n in range(N):
 		with tf.Session() as sess:	
-			sess = tf.Session()
+			#sess = tf.Session()
 			hyperparam = select_random_hyperparameters(config, attr, ranges,
 																log10_scale)
 			model = Model(config)

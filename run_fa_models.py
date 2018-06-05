@@ -72,6 +72,7 @@ def main():
 
 	#config = process_config('./configs/np_optimized.json', model_name)
 	config = process_config('./configs/sf_optimized.json', model_name)
+	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	#Remove summary dir, but not hyperparams
 	if rmdirs:
@@ -82,13 +83,11 @@ def main():
 		except OSError:
 			pass 
 
-	create_dirs([config.summary_dir, config.checkpoint_dir])
-
+	model = Model(config)
 	for idx in range(N):
 		print 'Running %s, iteration %d/%d'%(model_name, idx+1, N)
 		with tf.Session() as sess:	
-			sess = tf.Session()
-			model = Model(config)
+			#sess = tf.Session()
 			model.load(sess)
 			data = Data(config)
 			logger = Logger(sess, config)

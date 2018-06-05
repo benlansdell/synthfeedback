@@ -40,8 +40,8 @@ class SFTrainer(BaseTrain):
         summaries_dict = {
             'loss': loss,
             'acc': acc,
-            'loss_test', loss_test,
-            'acc_test', acc_test
+            'loss_test': loss_test,
+            'acc_test': acc_test
         }
 
         for idx in range(len(metrics)):
