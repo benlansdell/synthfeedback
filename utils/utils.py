@@ -17,7 +17,11 @@ def get_args():
 		metavar='M',
 		default='None',
 		help='Model name')
-
+	argparser.add_argument(
+		'-n', '--nreps',
+		metavar='n',
+		default=1,
+		help='Number of repetitions')
 	args = argparser.parse_args()
 	return args
 
