@@ -11,12 +11,20 @@ class SFTrainer(BaseTrain):
         loop = tqdm(range(self.config.num_iter_per_epoch))
         losses = []
         accs = []
+        losses_test = []
+        accs_test = []
         for _ in loop:
             loss, acc = self.train_step()
+            loss_test, acc_test = self.test()
             losses.append(loss)
             accs.append(acc)
+            losses_test.append(loss_test)
+            accs_test.append(acc_test)
+
         loss = np.mean(losses)
         acc = np.mean(accs)
+        loss_test = np.mean(losses_test)
+        acc_test = np.mean(accs_test)
 
         #Check for convergence issues...
         for x in self.model.trainable:
@@ -32,13 +40,15 @@ class SFTrainer(BaseTrain):
         summaries_dict = {
             'loss': loss,
             'acc': acc,
+            'loss_test', loss_test,
+            'acc_test', acc_test
         }
 
         for idx in range(len(metrics)):
             #summaries_dict['metrics'] = np.array(metrics)
             summaries_dict[metric_tags[idx]] = metrics[idx]
 
-        print("Epoch: %d Loss: %f Accuracy: %f"%(cur_ep, loss, acc))
+        print("Epoch: %d Train loss: %f Train accuracy: %f Test loss: %f Test accuracy: %f"%(cur_ep, loss, acc, loss_test, acc_test))
         if self.logger:
             self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
             self.model.save(self.sess)
@@ -48,6 +58,14 @@ class SFTrainer(BaseTrain):
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
                                                 self.model.is_training: True}
         _, loss, acc = self.sess.run([self.model.train_step, self.model.loss,\
+                                    self.model.accuracy], feed_dict=feed_dict)
+        return loss, acc
+
+    def test(self):
+        batch_x, batch_y = next(self.data.test_batch(self.config.batch_size))
+        feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
+                                                self.model.is_training: True}
+        loss, acc = self.sess.run([self.model.loss,\
                                     self.model.accuracy], feed_dict=feed_dict)
         return loss, acc
 

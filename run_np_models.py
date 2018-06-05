@@ -10,6 +10,7 @@ from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
 from utils.utils import get_args
+from utils.logger import LoggerNumpy, Logger
 
 import shutil
 
@@ -58,7 +59,8 @@ def main():
 			model = Model(config)
 			model.load(sess)
 			data = Data(config)
-			trainer = Trainer(sess, model, data, config, None)
+			logger = Logger(sess, config)
+			trainer = Trainer(sess, model, data, config, logger)
 			try:
 				trainer.train()
 			except ValueError:

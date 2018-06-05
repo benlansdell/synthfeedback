@@ -41,7 +41,9 @@ def fa_layer_w(prev, input_size, output_size, batch_size):
     return tf.matmul(prev_aug, W), W, B
 
 def tf_align(x, y):
-    return 180/np.pi*tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)
+    #Check they have the right dimensions...
+
+    return 180/np.pi*tf.acos(tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y))
 
 class BPModel(BaseModel):
     def __init__(self, config):
@@ -326,15 +328,15 @@ class FAModel4(BaseModel):
         for idx in range(len(Bs)):
             delta_fa = tf.matmul(es[idx], tf.transpose(Bs[idx]))[0,:]
             delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
-            error_fa = tf.norm(delta_fa - delta_bp)
-            alignment = tf_align(delta_fa, delta_bp)
+            error_fa = tf.norm(delta_fa - delta_bp)/tf.norm(delta_fa)
+            alignment = tf.abs(tf_align(delta_fa, delta_bp))
 
             #Eigenvector alignment (B^TW)
             evecs = tf.cast(tf_eigvecs(tf.matmul(Bs[idx], tf.transpose(Ws[idx]))), tf.float32)
             #Save each evec
             for j in range(k):
                 ev = evecs[:,j]
-                eva = tf_align(delta_fa, ev)
+                eva = tf.abs(tf_align(delta_fa, ev))
                 self.training_metric_tags.append('ev_%d_%d'%(idx+1,j))
                 self.training_metrics.append(eva)
 
@@ -344,7 +346,7 @@ class FAModel4(BaseModel):
             #save each evec
             for j in range(k):
                 ev = evecs[:,j]
-                eva = tf_align(delta_fa, ev)
+                eva = tf.abs(tf_align(delta_fa, ev))
                 self.training_metric_tags.append('ev_I_eta_%d_%d'%(idx+1,j))
                 self.training_metrics.append(eva)
 
@@ -352,7 +354,7 @@ class FAModel4(BaseModel):
             s,u,v = tf.svd(Ws[idx])
             for j in range(k):
                 uj = u[:,j]
-                uj_a = tf_align(uj, ls[idx])
+                uj_a = tf.abs(tf_align(uj, ls[idx]))
                 self.training_metric_tags.append('uj_a_%d_%d'%(idx+1,j))
                 self.training_metrics.append(uj_a)
 
