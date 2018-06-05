@@ -554,11 +554,11 @@ class AEDFANPModel(BaseModel):
             d5 = tf.gradients(xs=n5, ys=self.loss)[0]
             d6 = tf.gradients(xs=y_p, ys=self.loss)[0]
 
+            dl1 = tf.gradients(xs=l1, ys=self.loss)[0]
             dl2 = tf.gradients(xs=l2, ys=self.loss)[0]
             dl3 = tf.gradients(xs=l3, ys=self.loss)[0]
             dl4 = tf.gradients(xs=l4, ys=self.loss)[0]
             dl5 = tf.gradients(xs=l5, ys=self.loss)[0]
-            dl6 = tf.gradients(xs=y_p, ys=self.loss)[0]
 
             #Updates to B matrices (NP)
             grad_B2 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B2)) - xi1*(self.loss_p - self.loss)/var_xi),e)
@@ -566,9 +566,6 @@ class AEDFANPModel(BaseModel):
             grad_B4 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B4)) - xi3*(self.loss_p - self.loss)/var_xi),e)
             grad_B5 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B5)) - xi4*(self.loss_p - self.loss)/var_xi),e)
             grad_B6 = tf.matmul(tf.transpose(tf.matmul(e, tf.transpose(B6)) - xi5*(self.loss_p - self.loss)/var_xi),e)
-
-            #Also need to add eigenvector stuff
-            self._set_training_metrics(e, B2, B3, B4, B5, B6, W2, W3, W4, W5, W6, dl2, dl3, dl4, dl5, dl6, l1, l2, l3, l4, l5)
 
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
@@ -588,16 +585,37 @@ class AEDFANPModel(BaseModel):
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    def _set_training_metrics(self, e, B2, B3, B4, B5, B6, W2, W3, W4, W5, W6, dl2, dl3, dl4, dl5, dl6, l1, l2, l3, l4, l5):
-        #Compute:
-        # Alignment of B_ie with dl_i (feedback alignment)
-        # Alignment of l_i with top k singular values of W_{i+1}
-        # Alignment of B_ie with top k eigenvalues of B^TW 
-        # Eigenvalues of B^TW, W^TB
+            #Save training metrics
+            Bs = [B2, B3, B4, B5, B6]
+            Ws = [W2, W3, W4, W5, W6]
+            dls = [dl1, dl2, dl3, dl4, dl5]
+            ls = [l1, l2, l3, l4, l5]
+            self._set_training_metrics(e, Bs, Ws, dls, ls, self.config.learning_rate)
 
-        self.training_metric_tags = ['a', 'b', 'c']
-        self.training_metrics = [tf.norm(e), tf.norm(B2), tf.norm(B3)]
+    def _set_training_metrics(self, e, Bs, Ws, dls, ls, eta):
+
+        k = 6
+        #Alignment of B_{i+1}e with dl_i (feedback alignment)
+        for idx in range(len(Bs)):
+            delta_fa = tf.matmul(e, tf.transpose(Bs[idx][:,:]))[0,:]
+            delta_bp = dls[idx][0,:]
+            #error_fa = tf.norm(delta_fa - dls[idx])
+            alignment = 180/np.pi*tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            self.training_metric_tags.append('align_B%d'%(idx+2))
+            self.training_metrics.append(alignment)
+
+
+        #Alignment of l_i with top k singular values of W_{i+1}
+
+        #Alignment of B_ie with top k eigenvalues of B_i^TW_i 
+
+        #Alignment of B_ie with top k eigenvalues of (1 + \eta B_i^TW_i) 
+
+        #eigs1 = tf_eigvals(tf.matmul(tf.transpose(B1), W1))
+        #eigs2 = tf_eigvals(tf.matmul(tf.transpose(B2), W2))
 
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+
