@@ -8,7 +8,8 @@ from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, \
 														BPModel4, FAModel4, \
 														AEFAModel, AEBPModel,\
-														AEDFAModel, BPModel10, FAModel10
+														AEDFAModel, BPModel10, FAModel10,\
+														FAModel4Linear
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -31,6 +32,10 @@ def main():
 		Trainer = SFTrainer
 	elif model_name == 'feedbackalignment4':
 		Model = FAModel4
+		Data = MNISTDataGenerator
+		Trainer = SFTrainer
+	elif model_name == 'feedbackalignment4linear':
+		Model = FAModel4Linear
 		Data = MNISTDataGenerator
 		Trainer = SFTrainer
 	elif model_name == 'feedbackalignment10':
@@ -72,7 +77,6 @@ def main():
 
 	#config = process_config('./configs/np_optimized.json', model_name)
 	config = process_config('./configs/sf_optimized.json', model_name)
-	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	#Remove summary dir, but not hyperparams
 	if rmdirs:
@@ -81,7 +85,10 @@ def main():
 			shutil.rmtree(config.summary_dir + '/train/')
 			shutil.rmtree(config.checkpoint_dir)
 		except OSError:
+			print 'an error'
 			pass 
+
+	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	model = Model(config)
 	for idx in range(N):

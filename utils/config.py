@@ -24,7 +24,8 @@ def get_config_from_json(json_file, exp_name = None):
                     found = True
                     print("Loading options for exp_name '%s'"%exp_name)
             if not found:
-                print("Cannot find %s, loading first options in config file"%exp_name)
+                raise ValueError, "Cannot find %s in %s"%(exp_name, json_file)
+                #print("Cannot find %s, loading first options in config file"%exp_name)
     else:
         print('Only one experiment found in config file, loading that one.')
 
