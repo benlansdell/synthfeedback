@@ -88,3 +88,37 @@ def tf_eigvecs(A, name = None):
 						name=name,
 						grad=None)
 		return a[0]
+
+
+#####
+##New conv2d operation
+@tf.custom_gradient
+def conv2d_fa(x,
+    filter,
+    backprop_filter,
+    strides,
+    padding,
+    use_cudnn_on_gpu=True,
+    data_format='NHWC',
+    dilations=[1, 1, 1, 1],
+    name=None):
+
+  	def grad(dy):
+  		filter_sizes = tf.shape(filter)
+  		input_sizes = tf.shape(x)
+    	return tf.nn.conv2d_backprop_input(input_sizes, backprop_filter, dy, strides, padding, use_cudnn_on_gpu,data_format,
+    		dilations, name), tf.nn.conv2d_backprop_filter(x, filter_sizes, dy, strides, padding, use_cudnn_on_gpu,
+    		data_format, dilations, name)
+
+  	return tf.nn.conv2d(x, filter, strides, padding, use_cudnn_on_gpu, data_format,dilations, name), grad
+
+def conv2d_bp(x,
+    filter,
+    strides,
+    padding,
+    use_cudnn_on_gpu=True,
+    data_format='NHWC',
+    dilations=[1, 1, 1, 1],
+    name=None):
+
+	return conv2d_fa(x, filter, filter, strides, padding, use_cudnn_on_gpu=True, data_format='NHWC', dilations=[1, 1, 1, 1], name=None)
