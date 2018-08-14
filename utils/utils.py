@@ -92,25 +92,16 @@ def tf_eigvecs(A, name = None):
 
 #####
 ##New conv2d operation
-@tf.custom_gradient
-def conv2d_fa(x,
-    filter,
-    backprop_filter,
-    strides,
-    padding,
-    use_cudnn_on_gpu=True,
-    data_format='NHWC',
-    dilations=[1, 1, 1, 1],
-    name=None):
-
-  	def grad(dy):
-  		filter_sizes = tf.shape(filter)
-  		input_sizes = tf.shape(x)
-    	return tf.nn.conv2d_backprop_input(input_sizes, backprop_filter, dy, strides, padding, use_cudnn_on_gpu,data_format,
-    		dilations, name), tf.nn.conv2d_backprop_filter(x, filter_sizes, dy, strides, padding, use_cudnn_on_gpu,
-    		data_format, dilations, name)
-
-  	return tf.nn.conv2d(x, filter, strides, padding, use_cudnn_on_gpu, data_format,dilations, name), grad
+@tf.RegisterGradient("CustomConv")
+def conv2d_fa(op,grad):
+    print("in override backprop")
+    input = op.inputs[0]
+    filter = op.inputs[1]
+    in_shape = tf.shape(input)
+    f_shape = tf.shape(filter)
+    g_input = tf.nn.conv2d_backprop_input(input_sizes = in_shape, filter = filter, out_backprop = grad, strides = [1,1,1,1], padding = "SAME")
+    g_filter = tf.nn.conv2d_backprop_filter(input, filter_sizes = f_shape, out_backprop = grad, strides = [1,1,1,1], padding = "SAME")
+    return g_input, g_filter
 
 def conv2d_bp(x,
     filter,

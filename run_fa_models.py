@@ -5,9 +5,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, \
-														BPModel4, FAModel4, \
-														AEFAModel, AEBPModel,\
+from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, BPModel4, FAModel4, AEFAModel, AEBPModel,\
 														AEDFAModel, BPModel10, FAModel10,\
 														FAModel4Linear
 from trainers.sf_trainer import SFTrainer, AESFTrainer
@@ -85,14 +83,14 @@ def main():
 			shutil.rmtree(config.summary_dir + '/train/')
 			shutil.rmtree(config.checkpoint_dir)
 		except OSError:
-			print 'an error'
+			print ('an error')
 			pass 
 
 	create_dirs([config.summary_dir, config.checkpoint_dir])
 
 	model = Model(config)
 	for idx in range(N):
-		print 'Running %s, iteration %d/%d'%(model_name, idx+1, N)
+		print ('Running %s, iteration %d/%d'%(model_name, idx+1, N))
 		with tf.Session() as sess:	
 			#sess = tf.Session()
 			model.load(sess)
