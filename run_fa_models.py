@@ -22,7 +22,7 @@ import numpy as np
 
 def main():
 	args = get_args()
-	model_name =args.modelname
+	model_name = args.modelname
 	N = args.nreps
 	rmdirs = args.rmdirs
 
