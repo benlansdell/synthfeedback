@@ -6,8 +6,8 @@ import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, BPModel4, FAModel4, AEFAModel, AEBPModel,\
-														AEDFAModel, BPModel10, FAModel10,\
-														FAModel4Linear
+                            AEDFAModel, BPModel10, FAModel10,\
+                            FAModel4Linear
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -18,8 +18,7 @@ import shutil
 import numpy.random as rng
 import numpy as np
 
-def crossvalidate():
-    test_rates=np.logspace(1e-5,1e-9,num=6)
+
     
 def main():
     print("MaIn bEgiNs hErE!!!")
@@ -78,17 +77,13 @@ def main():
         Data = MNISTDataGenerator
         Trainer = AESFTrainer
         
-     '''   choice =input("Cross-Validate(y/n)???")
-        if(choice =='y'):
-            print("its a yes!!")
-            crossvalidate()
-        else:
-            print("Its a no(default is no)")'''
-    #config = process_config('./configs/np_optimized.json', model_name)
+    
+         #config = process_config('./configs/np_optimized.json', model_name)
     config = process_config('./configs/sf_optimized.json', model_name)
     print("this is config:\n",config)
+    config.learning_rate=3.98107171e-05
     print("\nThat learning rate though:",config.learning_rate)
-    #Remove summary dir, but not hyperparams
+    #Remove summary dir, but not hyperparams      
     if rmdirs:
         try:
             shutil.rmtree(config.summary_dir + '/test/')
@@ -109,11 +104,11 @@ def main():
             data = Data(config)
             logger = Logger(sess, config)
             trainer = Trainer(sess, model, data, config, logger)
-
+            
             try:
                 trainer.train()
             except ValueError:
                 print("Method fails to converge for these parameters")
 
 if __name__ == '__main__':
-    main()
+        main()

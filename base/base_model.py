@@ -21,6 +21,7 @@ class BaseModel(object):
 
     # load latest checkpoint from the experiment path defined in the config file
     def load(self, sess):
+        print("in base_model.py:THIS Is CHECK POINT: :",self.config.checkpoint_dir)##############REMOVE##############
         latest_checkpoint = tf.train.latest_checkpoint(self.config.checkpoint_dir)
         if latest_checkpoint:
             print("Loading model checkpoint {} ...\n".format(latest_checkpoint))

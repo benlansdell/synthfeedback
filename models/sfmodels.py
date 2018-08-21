@@ -324,6 +324,7 @@ class FAModel4(BaseModel):
             #ls = [l1, l2, l3, l4, l5]
             dls = []
             ls = [h1_aug, h2_aug]
+            print("\n\n\n\in class FAMODEL4: in function build_model")####################################
             self._set_training_metrics(es, Bs, Ws, dls, ls, self.config.learning_rate)
 
     def _set_training_metrics(self, es, Bs, Ws, dls, ls, eta):
@@ -372,6 +373,8 @@ class FAModel4(BaseModel):
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+        #self.saver = tf.train.Saver()
+
 
 class FAModel4Linear(BaseModel):
     #Four layers version
