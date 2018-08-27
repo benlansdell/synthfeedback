@@ -57,12 +57,15 @@ class BPModel(BaseModel):
         self.init_saver()
 
     def build_model(self):
+       # tf.reset_default_graph() 
         self.is_training = tf.placeholder(tf.bool)
         self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
         self.y = tf.placeholder(tf.float32, shape=[None, 10])
-        # network architecture
-        d1 = tf.layers.dense(self.x, 512, activation=tf.sigmoid, name="dense1")
-        d2 = tf.layers.dense(d1, 10, name="dense2")
+        # network architecture 
+        with tf.variable_scope("bpp",reuse=tf.AUTO_REUSE) as scope:
+                d1 = tf.layers.dense(self.x, 512, activation=tf.sigmoid, name="dense1")
+                d2 = tf.layers.dense(d1, 10, name="dense2")
+   
         with tf.name_scope("loss"):
             self.loss = tf.reduce_sum(tf.pow(d2-self.y, 2))/2
             self.train_step = tf.train.GradientDescentOptimizer(self.config.learning_rate).minimize(self.loss,

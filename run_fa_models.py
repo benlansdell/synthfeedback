@@ -17,9 +17,6 @@ from utils.logger import LoggerNumpy, Logger
 import shutil
 import numpy.random as rng
 import numpy as np
-
-def crossvalidate():
-    test_rates=np.logspace(1e-5,1e-9,num=6)
     
 def main():
     print("MaIn bEgiNs hErE!!!")
@@ -78,12 +75,6 @@ def main():
         Data = MNISTDataGenerator
         Trainer = AESFTrainer
         
-     '''   choice =input("Cross-Validate(y/n)???")
-        if(choice =='y'):
-            print("its a yes!!")
-            crossvalidate()
-        else:
-            print("Its a no(default is no)")'''
     #config = process_config('./configs/np_optimized.json', model_name)
     config = process_config('./configs/sf_optimized.json', model_name)
     print("this is config:\n",config)
