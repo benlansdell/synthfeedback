@@ -8,6 +8,7 @@ from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, BPModel4, FAModel4, AEFAModel, AEBPModel,\
 														AEDFAModel, BPModel10, FAModel10,\
 														FAModel4Linear
+from models.npmodels import NPModel4,DirectNPModel4,AENPModel,AEDFANPModel
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -74,9 +75,10 @@ def main():
         Model = AEDFAModel
         Data = MNISTDataGenerator
         Trainer = AESFTrainer
+
         
-    #config = process_config('./configs/np_optimized.json', model_name)
-    config = process_config('./configs/sf_optimized.json', model_name)
+    config = process_config('./configs/np_optimized.json', model_name)
+    #config = process_config('./configs/sf_optimized.json', model_name)
     print("this is config:\n",config)
     print("\nThat learning rate though:",config.learning_rate)
     #Remove summary dir, but not hyperparams
