@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 import tensorflow as tf
 
@@ -57,14 +57,16 @@ def crossvalidate(Model,Data,Trainer,model_name,rmdirs,N):
             model = Model(config)
             print("model:",model)
             
-            #mem_config = tf.ConfigProto()
-            #mem_config.intra_op_parallelism_threads = 44
-            #mem_config.inter_op_parallelism_threads = 44
+            
+            #mem_config = tf.ConfigProto(device_count={'CPU': 4})
+            #mem_config.intra_op_parallelism_threads = 1
+            #mem_config.inter_op_parallelism_threads = 1
             
             for idx in range(N):
                 print ('Running %s, iteration %d/%d'%(model_name, idx+1, N))
-                with tf.Session(config=tf.ConfigProto(inter_op_parallelism_threads=1,
-                   intra_op_parallelism_threads=1)) as sess:
+                #with tf.Session(config=tf.ConfigProto(intra_op_parallelism_threads=4,
+                  #inter_op_parallelism_threads=4)) as sess:
+                with tf.Session() as sess:
                     model.load(sess)
                     data = Data(config)
                     logger = Logger(sess, config)
@@ -111,45 +113,8 @@ def main():
         Data=MNISTDataGenerator
         Trainer=AESFTrainer
     
-    choice =input("Cross-Validate(y/n)???")
-    if(choice =='y'):
-        print("its a yes!!\n Begin crossvaldations")
-        crossvalidate(Model,Data,Trainer,model_name,rmdirs,N)
+    crossvalidate(Model,Data,Trainer,model_name,rmdirs,N)
     
-    else:
-        print("Its a no(default is no)")
-        config = process_config('./configs/np_optimized.json', model_name)
-        #config = process_config('./configs/sf_optimized.json', model_name)
-        #print("this is config:\n",config)
-        print("\n learning rate :",config.learning_rate)
-        #Remove summary dir, but not hyperparams      
-        if rmdirs:
-            try:
-                #shutil.rmtree(config.summary_dir + '/test/')
-                #shutil.rmtree(config.summary_dir + '/train/')
-                shutil.rmtree(config.checkpoint_dir)
-            except OSError:
-                print ('an error')
-                pass 
-
-        create_dirs([config.summary_dir, config.checkpoint_dir])
-        
-        model = Model(config)
-        
-        
-        for idx in range(N):
-            print ('Running %s, iteration %d/%d'%(model_name, idx+1, N))
-            with tf.Session() as sess:	
-                #sess = tf.Session()
-                model.load(sess)
-                data = Data(config)
-                logger = Logger(sess, config)
-                trainer = Trainer(sess, model, data, config, logger)
-
-                try:
-                    trainer.train()
-                except ValueError:
-                    print("Method fails to converge for these parameters")
-
+    
 if __name__ == '__main__':
     main()

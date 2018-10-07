@@ -112,7 +112,8 @@ class NPModel(BaseModel):
 
             new_W = W.assign(W - self.config.learning_rate*grad_W)
             new_A = A.assign(A - self.config.learning_rate*grad_A)            
-            new_B = B.assign(B - self.config.lmda_learning_rate*grad_B)            
+            new_B = B.assign(B - self.config.lmda_learning_rate
+                             *grad_B)            
             self.train_step = [new_W, new_A, new_B]
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
