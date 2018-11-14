@@ -15,11 +15,12 @@ state_size = 50
 learning_rate = 1e-4
 alpha2 = 1
 activation = tf.tanh
-
-#####################
-# Haven't added yet!#
-#####################
 act_prime = lambda x: 1 - tf.multiply(x,x)
+
+#Node pert params
+lmbda = 1e-3
+var_xi = 0.1
+p_fire = 1 #1 in 20 times a neuron will add Gaussian noise to its output
 
 def gen_data(size=1000000):
     mean_delay = 2
@@ -80,6 +81,7 @@ x = tf.placeholder(tf.float32, [batch_size, in_dim, num_steps], name='input_plac
 y = tf.placeholder(tf.float32, [batch_size, num_steps], name='labels_placeholder')
 init_state = tf.zeros([batch_size, state_size], dtype=np.float32)
 init_gradW = tf.zeros([state_size+1, state_size], dtype=np.float32)
+init_gradB = tf.zeros([state_size, state_size], dtype=np.float32)
 init_gradU = tf.zeros([in_dim, state_size], dtype=np.float32)
 
 """
@@ -95,7 +97,16 @@ Definition of rnn_cell
 ones0 = tf.ones([batch_size, 1], tf.float32)
 U = tf.get_variable('U', [in_dim, state_size])
 W = tf.get_variable('W', [state_size+1, state_size])
-B = tf.Variable(rng.randn(state_size+1, state_size)*alpha2, name="feedback_weights", dtype=tf.float32)
+#B = tf.Variable(rng.randn(state_size+1, state_size)*alpha2, name="feedback_weights", dtype=tf.float32)
+B = tf.Variable(rng.randn(state_size, state_size)*alpha2, name="feedback_weights", dtype=tf.float32)
+
+#Add perturbed output. 
+#
+#Choose a random subset to randomly add noise
+#
+#Update the estimate for B on the basis of this
+#
+#
 
 def rnn_cell(rnn_input, state, W, U):
     ones0 = tf.ones([batch_size, 1], tf.float32)
@@ -106,10 +117,19 @@ def rnn_cell(rnn_input, state, W, U):
 Adding rnn_cells to graph
 """
 state = init_state
+state_p = init_state
 rnn_outputs = []
+rnn_pert_outputs = []
+noise_outputs = []
 for rnn_input in rnn_inputs:
+    #Add noise
+    mask = tf.random_uniform(state.shape) < p_fire
+    xi = tf.multiply(tf.random_normal(state.shape)*var_xi, tf.to_float(mask))
     state = rnn_cell(rnn_input, state, W, U)
+    state_p = rnn_cell(rnn_input, state_p, W, U) + xi
     rnn_outputs.append(state)
+    rnn_pert_outputs.append(state_p)
+    noise_outputs.append(xi)
 final_state = rnn_outputs[-1]
 
 """
@@ -117,64 +137,125 @@ Predictions, loss, training step
 """
 V = tf.get_variable('V', [state_size+1, 1])
 logits = [tf.squeeze(tf.matmul(tf.concat([rnn_output, ones0], 1), V)) for rnn_output in rnn_outputs]
+logits_as_t = tf.stack(logits, axis=1)
 y_as_list = tf.unstack(y, num=num_steps, axis=1)
 
 #losses and train_step
+loss = [tf.pow(logit-label, 2)/2 for logit, label in zip(logits, y_as_list)]
 losses = [tf.reduce_sum(tf.pow(logit-label, 2))/2 for logit, label in zip(logits, y_as_list)]
 total_loss = tf.reduce_mean(losses)
+
+#Perturbed outputs and loss
+logits_pert = [tf.squeeze(tf.matmul(tf.concat([rnn_pert_output, ones0], 1), V)) for rnn_pert_output in rnn_pert_outputs]
+logits_pert_as_t = tf.stack(logits_pert, axis=1)
+
+loss_pert = [tf.pow(logit-label, 2)/2 for logit, label in zip(logits_pert, y_as_list)]
+losses_pert = [tf.reduce_sum(tf.pow(logit-label, 2))/2 for logit, label in zip(logits_pert, y_as_list)]
+total_loss_pert = tf.reduce_mean(losses_pert)
+
+e0s = [(logit - label) for logit, label in zip(logits, y_as_list)]
+delta0s = e0s
+
+##############
+## BACKPROP ##
+##############
+
+#grad_U = init_gradU
+#grad_W = init_gradW
+#for i in range(num_steps):
+#    for j in range(i+1)[::-1]:
+#        if j == i:
+#            delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
+#        else:
+#            delta = tf.multiply(tf.matmul(delta, tf.transpose(W[0:state_size,:])), act_prime(rnn_outputs[j]))
+#        grad_U = grad_U + tf.matmul(tf.transpose(rnn_inputs[j]), delta)
+#        if j > 0:
+#            grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
+#
+#grad_V = tf.gradients(xs=V, ys=total_loss)[0]
+#grad_W = tf.gradients(xs=W, ys=total_loss)[0]
+#grad_U = tf.gradients(xs=U, ys=total_loss)[0]
+
+########################
+## FEEDBACK ALIGNMENT ##
+########################
+
+#grad_U = init_gradU
+#grad_W = init_gradW
+#for i in range(num_steps):
+#    for j in range(i+1)[::-1]:
+#        if j == i:
+#            delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
+#        else:
+#            delta = tf.multiply(tf.matmul(delta, tf.transpose(B)), act_prime(rnn_outputs[j]))
+#        grad_U = grad_U + tf.matmul(tf.transpose(rnn_inputs[j]), delta)
+#        if j > 0:
+#            grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
+#
+#grad_V = tf.gradients(xs=V, ys=total_loss)[0]
+
+###################
+## SIGN MATCHING ##
+###################
+
+#C = tf.sign(W)
+#
+#grad_U = init_gradU
+#grad_W = init_gradW
+#for i in range(num_steps):
+#    for j in range(i+1)[::-1]:
+#        if j == i:
+#            delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
+#        else:
+#            #Set to sign of W instead...
+#            delta = tf.multiply(tf.matmul(delta, tf.transpose(C[0:state_size,:])), act_prime(rnn_outputs[j]))
+#        grad_U = grad_U + tf.matmul(tf.transpose(rnn_inputs[j]), delta)
+#        if j > 0:
+#            grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
+#
+#grad_V = tf.gradients(xs=V, ys=total_loss)[0]
+
+###############
+## NODE PERT ##
+###############
 
 #Train network with node perturbation and REINFORCE
 #Option 1: add training rule for B
 #Perturb output with noise, keep noise for fitting
 
-
-#Compute deltas recursively
-#def bptt(delta, input, output):
-#    return delta
-#def fa(delta, input, output):
-#    return delta
-#def nodepert(delta, input, output):
-#    return delta
-
-#Training updates
-#delta = []
-#updates = []
-#trainer = bptt
-
-#Implement BPTT
-e0s = [(logit - label) for logit, label in zip(logits, y_as_list)]
-#delta0s = [e0*y0 for (e0, y0) in zip(e0s, logits)]
-delta0s = e0s
-
-#For each delta0 propagate this back through the rest of the network
-#delta = tf.matmul(e, tf.transpose(W[0:m,:]))[0,:]
 grad_U = init_gradU
 grad_W = init_gradW
+grad_B = init_gradB
 for i in range(num_steps):
     for j in range(i+1)[::-1]:
         if j == i:
             delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
         else:
-            delta = tf.multiply(tf.matmul(delta, tf.transpose(W[0:state_size,:])), act_prime(rnn_outputs[j]))
+            delta = tf.multiply(tf.matmul(delta, tf.transpose(B)), act_prime(rnn_outputs[j]))
         grad_U = grad_U + tf.matmul(tf.transpose(rnn_inputs[j]), delta)
         if j > 0:
             grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
+        grad_B = grad_B + tf.matmul(tf.matmul(B, tf.transpose(delta)) - \
+            tf.transpose(tf.matmul(tf.diag(loss_pert[i] - loss[i])/var_xi/var_xi, noise_outputs[j])), delta)
 
 grad_V = tf.gradients(xs=V, ys=total_loss)[0]
 
 #grad_W = tf.gradients(xs=W, ys=total_loss)[0]
 #grad_U = tf.gradients(xs=U, ys=total_loss)[0]
 
+nb = tf.norm(B)
+#new_B = B.assign(B - lmbda*grad_B)            
+new_B = B.assign(B - lmbda*tf.clip_by_value(grad_B, -10, 10, name=None))
 
-#zero_grad_U = grad_U.assign(tf.zeros(grad_U.shape))
-#zero_grad_W = grad_W.assign(tf.zeros(grad_W.shape))
+##################################################
+
 new_U = U.assign(U - learning_rate*grad_U)            
 new_W = W.assign(W - learning_rate*grad_W)           
 new_V = V.assign(V - learning_rate*grad_V)          
 
 #train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(total_loss)
-#train_step = [zero_grad_U, zero_grad_W, new_U, new_W, new_V]
-train_step = [new_U, new_W, new_V]
+#train_step = [new_U, new_W, new_V]
+train_step = [new_U, new_W, new_V, new_B]
 
 #num_epochs = 30
 #num_steps = 7
@@ -201,14 +282,18 @@ def train_network(num_epochs, num_steps, state_size=state_size, verbose=True):
                 print("\nEpoch: %d"%idx)
             for step, (X, Y) in enumerate(epoch):
                 tr_init_gradW = np.zeros((state_size+1, state_size))
+                tr_init_gradB = np.zeros((state_size, state_size))
                 tr_init_gradU = np.zeros((in_dim, state_size))
-                tr_losses, training_loss_, training_state, _ = \
-                    sess.run([losses,
+                tr_loss, tr_losses, training_loss_, training_state, _, norm_b = \
+                    sess.run([loss, losses,
                               total_loss,
                               final_state,
-                              train_step],
-                                  feed_dict={x:X, y:Y, init_state:training_state, init_gradU:tr_init_gradU, init_gradW: tr_init_gradW})
+                              train_step, nb],
+                                  feed_dict={x:X, y:Y, init_state:training_state, \
+                                  init_gradU:tr_init_gradU, init_gradW: tr_init_gradW, \
+                                  init_gradB: tr_init_gradB})
                 training_loss += training_loss_
+                #print(np.mean(tr_loss), norm_b)
                 if step % 100 == 0 and step > 0:
                     if verbose:
                         print("Average loss at step %d for last 100 steps: %f"%(step, training_loss/100))
@@ -223,7 +308,7 @@ def train_network(num_epochs, num_steps, state_size=state_size, verbose=True):
         X_test[:,1,2] = 1
         X_test[:,0,4] = 1
         Y_test[:,5] = -1
-        output, loss = sess.run([logits, total_loss], feed_dict={x:X_test, y:Y_test, init_state:training_state})
+        output, tloss = sess.run([logits, total_loss], feed_dict={x:X_test, y:Y_test, init_state:training_state})
 
     return output, training_losses
 
