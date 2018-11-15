@@ -23,7 +23,7 @@ batch_size = 50
 #Training parameters 
 # iterations=3000
 # i=tf.Variable(0,name='loop_i')
-eta=tf.constant(0.00001,dtype=tf.float32)
+eta=tf.constant(0.0001,dtype=tf.float32)
 
 #Training data inputs
 '''x=tf.placeholder(tf.float64,[None,inshape], name = 'x')

@@ -21,7 +21,7 @@ n=10 # Output size
 
 #Training parameters 
 batch_size = 50
-eta=tf.constant(0.00001,dtype=tf.float32)
+eta=tf.constant(0.0001,dtype=tf.float32)
 
 #Training data inputs
 '''x=tf.placeholder(tf.float64,[None,inshape], name = 'x')
@@ -98,6 +98,6 @@ with tf.Session() as sess:
             store_acc[epoch_no,idx]=acc
         print("Run no: %d completed"%epoch_no)
         
-with open("MNIST-FA.pkl",'wb') as f:
+with open("MNIST-FA(larger-eta).pkl",'wb') as f:
     pickle.dump([store_err,store_al,store_acc,iteration,epoch],f)
 
