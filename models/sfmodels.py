@@ -813,7 +813,7 @@ class AEFAModel(BaseModel):
             delta_fa = fas[idx][0,:]
             delta_bp = dls[idx][0,:]
             #error_fa = tf.norm(delta_fa - dls[idx])
-            alignment = 180/np.pi*tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
 
@@ -1019,7 +1019,7 @@ class AEDFAModel(BaseModel):
             delta_fa = tf.matmul(e, tf.transpose(Bs[idx][:,:]))[0,:]
             delta_bp = dls[idx][0,:]
             #error_fa = tf.norm(delta_fa - dls[idx])
-            alignment = 180/np.pi*tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
 
@@ -1223,7 +1223,7 @@ class FAModel10(BaseModel):
             delta_fa = fas[idx][0,:]
             delta_bp = bps[idx][0,:]
             #error_fa = tf.norm(delta_fa - dls[idx])
-            alignment = 180/np.pi*tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
 

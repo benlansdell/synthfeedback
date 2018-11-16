@@ -23,7 +23,7 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'directfeedbackalignment'
+model_name = 'feedbackalignment4'
 
 if model_name == 'feedbackalignment':
     Model = FAModel
@@ -38,6 +38,10 @@ elif model_name == 'directfeedbackalignment':
     Data = MNISTDataGenerator
     Trainer = SFTrainer
 elif model_name == 'backprop':
+    Model = BPModel
+    Data = MNISTDataGenerator
+    Trainer = SFTrainer
+elif model_name == 'backprop_slower':
     Model = BPModel
     Data = MNISTDataGenerator
     Trainer = SFTrainer
@@ -66,7 +70,7 @@ elif model_name == 'backprop_autoencoder':
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
-config = process_config('./configs/sf.json', model_name)
+config = process_config('./configs/sf_optimized.json', model_name)
 create_dirs([config.summary_dir, config.checkpoint_dir])
 sess = tf.Session()
 model = Model(config)
