@@ -45,6 +45,16 @@ def fc_layer_noise(prev, W, var_xi, config):
     xi = tf.random_normal(shape=tf.shape(n), mean=0.0, stddev=var_xi, dtype=tf.float32)
     return n + xi, xi
 
+def tf_align(x, y):
+    #Check they have the right dimensions...
+    #if x.get_shape() != y.get_shape():
+    #print "Vectors different shape"
+    #print x.get_shape(), y.get_shape()
+    theta = 180/np.pi*tf.abs(tf.acos(tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)))
+    #if (theta > 90) and (theta < 180):
+    #    theta = 90 - theta
+    return tf.cond(tf.logical_and(tf.less(90.0,theta), tf.less(theta,180.0)), lambda: 180.0 - theta, lambda: theta)
+
 class NPModel(BaseModel):
     def __init__(self, config):
         super(NPModel, self).__init__(config)
@@ -193,8 +203,8 @@ class NPModel4(BaseModel):
             lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
             d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
-            grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi, d2)
-            grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi, e)
+            grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi, d2)
+            grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi, e)
 
             #Feedback data for saving
             #Only take first item in epoch
@@ -224,13 +234,29 @@ class NPModel4(BaseModel):
 
             #Also need to add eigenvector stuff
             #self.training_metrics = [alignment, norm_W, norm_B, error_FA, eigs[0]]
-            self.training_metrics = []
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+            #Save training metrics
+            Bs = [B1, B2]
+            Ws = [W1, W2]
+            es = [d2, e]
+            self._set_training_metrics(Ws, Bs, es)
+
 
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+    def _set_training_metrics(self, Ws, Bs, es):
+        for idx in range(len(Bs)):
+            delta_fa = tf.matmul(es[idx], tf.transpose(Bs[idx]))[0,:]
+            delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
+            alignment = tf.abs(tf_align(delta_fa, delta_bp))
+            self.training_metric_tags.append('align_B%d'%(idx+2))
+            self.training_metrics.append(alignment)
+
+
 
 class DirectNPModel4(BaseModel):
     #Four layers version
@@ -603,7 +629,6 @@ class AEDFANPModel(BaseModel):
             alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
-
 
         #Alignment of l_i with top k singular values of W_{i+1}
 

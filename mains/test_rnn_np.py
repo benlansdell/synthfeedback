@@ -39,8 +39,8 @@ acclimatize = True
 
 grad_max = 10
 
-N_runs = 1
-N_epochs = 20
+N_runs = 10
+N_epochs = 200
 
 fn_out = './experiments/rnn_np/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
 

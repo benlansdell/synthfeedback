@@ -21,7 +21,7 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'nodepert_dfa_autoencoder'
+model_name = 'nodepert4'
 
 if model_name == 'nodepert':
     Model = NPModel
@@ -60,7 +60,7 @@ elif model_name == 'nodepert_dfa_autoencoder':
 #    Model = AEFAModel
 #    Data = MNISTDataGenerator
 
-config = process_config('./configs/np.json', model_name)
+config = process_config('./configs/np_optimized.json', model_name)
 create_dirs([config.summary_dir, config.checkpoint_dir])
 sess = tf.Session()
 model = Model(config)

@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 from models.sfmodels import BPModel, FAModel, FAModelLinear, DirectFAModel4, FAModel4, AEFAModel,\
-                            BPModel10, FAModel10, AEDFAModel, AEBPModel
+                            BPModel10, FAModel10, AEDFAModel, AEBPModel, BPModel4
 from trainers.sf_trainer import SFTrainer, AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -23,7 +23,8 @@ from utils.utils import get_args
 #        exit(0)
 
 #Select models:
-model_name = 'feedbackalignment4'
+#model_name = 'feedbackalignment4'
+model_name = 'backprop4_slower'
 
 if model_name == 'feedbackalignment':
     Model = FAModel
@@ -43,6 +44,10 @@ elif model_name == 'backprop':
     Trainer = SFTrainer
 elif model_name == 'backprop_slower':
     Model = BPModel
+    Data = MNISTDataGenerator
+    Trainer = SFTrainer
+elif model_name == 'backprop4_slower':
+    Model = BPModel4
     Data = MNISTDataGenerator
     Trainer = SFTrainer
 elif model_name == 'backprop10':

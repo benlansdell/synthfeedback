@@ -54,7 +54,7 @@ def main():
 
     grad_max = 10
 
-    N_runs = 10
+    N_runs = 3
     N_epochs = 200
 
     fn_out = './experiments/rnn_np/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
@@ -272,6 +272,17 @@ def main():
         alnments = []
         for i in range(num_steps):
             for j in range(i+1)[::-1]:
+
+                #Compute alignment for the last window, taking mean over all batches
+                if i == num_steps - 1:
+                    a1 = tf.gradients(xs=rnn_outputs[j], ys=loss[i])[0]
+                    if j == i:
+                        a2 = tf.matmul(delta0s[i][:,None], tf.transpose(V[0:state_size,:]))
+                    else:
+                        a2 = tf.matmul(delta, tf.transpose(B))
+                    a = tf.reduce_mean(tf.reduce_sum(tf.multiply(a1,a2),1)/tf.norm(a1,axis=1)/tf.norm(a2,axis=1))
+                    alnments.append(a)
+
                 if j == i:
                     delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
                 else:
@@ -281,13 +292,6 @@ def main():
                 if j > 0:
                     grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
         
-                #Compute alignment for the last window, taking mean over all batches
-                if i == num_steps - 1:
-                    a1 = tf.gradients(xs=rnn_outputs[j], ys=total_loss)[0]
-                    a2 = tf.matmul(delta, tf.transpose(B))
-                    a = tf.reduce_mean(tf.reduce_sum(tf.multiply(a1,a2),1)/tf.norm(a1,axis=1)/tf.norm(a2,axis=1))
-                    alnments.append(a)
-
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
 
         return grad_U, grad_W, grad_B, grad_V, alnments
@@ -304,6 +308,17 @@ def main():
         alnments = []
         for i in range(num_steps):
             for j in range(i+1)[::-1]:
+
+                #Compute alignment for the last window, taking mean over all batches
+                if i == num_steps - 1:
+                    a1 = tf.gradients(xs=rnn_outputs[j], ys=loss[i])[0]
+                    if j == i:
+                        a2 = tf.matmul(delta0s[i][:,None], tf.transpose(V[0:state_size,:]))
+                    else:
+                        a2 = tf.matmul(delta, tf.transpose(B))
+                    a = tf.reduce_mean(tf.reduce_sum(tf.multiply(a1,a2),1)/tf.norm(a1,axis=1)/tf.norm(a2,axis=1))
+                    alnments.append(a)
+
                 if j == i:
                     delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), act_prime(rnn_outputs[j]))
                 else:
@@ -313,13 +328,6 @@ def main():
                     grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
                 grad_B = grad_B + tf.matmul(tf.matmul(B, tf.transpose(delta)) - \
                     tf.transpose(tf.matmul(tf.diag(loss_pert[i] - loss[i])/var_xi/var_xi, noise_outputs[j])), delta)
-
-                #Compute alignment for the last window, taking mean over all batches
-                if i == num_steps - 1:
-                    a1 = tf.gradients(xs=rnn_outputs[j], ys=total_loss)[0]
-                    a2 = tf.matmul(delta, tf.transpose(B))
-                    a = tf.reduce_mean(tf.reduce_sum(tf.multiply(a1,a2),1)/tf.norm(a1,axis=1)/tf.norm(a2,axis=1))
-                    alnments.append(a)
 
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
         #grad_W = tf.gradients(xs=W, ys=total_loss)[0]
