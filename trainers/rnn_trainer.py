@@ -11,9 +11,10 @@ class RNNTrainer(BaseTrain):
         loop = tqdm(range(self.config.num_iter_per_epoch))
         losses = []
         losses_test = []
+        self.training_state = np.zeros((self.config.batch_size, self.config.state_size[0]))
         for _ in loop:
             loss = self.train_step()
-            loss_test = self.test()
+            loss_test, _, _, _ = self.test()
             losses.append(loss)
             losses_test.append(loss_test)
 
@@ -40,7 +41,7 @@ class RNNTrainer(BaseTrain):
             #summaries_dict['metrics'] = np.array(metrics)
             summaries_dict[metric_tags[idx]] = metrics[idx]
 
-        print("Epoch: %d Train loss: %f Train accuracy: %f Test loss: %f Test accuracy: %f"%(cur_ep, loss, loss_test))
+        print("Epoch: %d Train loss: %f Test loss: %f"%(cur_ep, loss, loss_test))
         if self.logger:
             self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
             self.model.save(self.sess)
@@ -48,15 +49,14 @@ class RNNTrainer(BaseTrain):
     def train_step(self):
         batch_x, batch_y = next(self.data.next_batch())
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
-                                                self.model.is_training: True}
-        _, loss = self.sess.run([self.model.train_step, self.model.loss,\
-                                    ], feed_dict=feed_dict)
+                                self.model.init_state:self.training_state, self.model.is_training: True}
+        _, loss, self.training_state = self.sess.run([self.model.train_step, self.model.loss,\
+                            self.model.final_state], feed_dict=feed_dict)
         return loss
 
     def test(self):
         batch_x, batch_y = next(self.data.test_batch())
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
                                                 self.model.is_training: True}
-        loss = self.sess.run([self.model.loss,\
-                                    ], feed_dict=feed_dict)
-        return loss
+        loss, pred = self.sess.run([self.model.loss, self.model.pred], feed_dict=feed_dict)
+        return loss, pred, batch_x, batch_y

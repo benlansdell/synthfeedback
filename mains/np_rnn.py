@@ -3,7 +3,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 import tensorflow as tf
 
-from data_loader.data_generator import XORDataGenerator
+from data_loader.data_generator import SmallXORDataGenerator
 from models.rnnmodels import BPTTModel#, FARNNModel, NPRNNModel, 
 from trainers.rnn_trainer import RNNTrainer
 from utils.config import process_config
@@ -12,9 +12,9 @@ from utils.logger import LoggerNumpy, Logger
 from utils.utils import get_args
 
 #Select models:
-model_name = 'bptt'
+model_name = 'bptt_short'
 Model = BPTTModel
-Data = XORDataGenerator
+Data = SmallXORDataGenerator
 Trainer = RNNTrainer
 
 #if model_name == 'bptt':
@@ -41,5 +41,11 @@ logger = Logger(sess, config)
 trainer = Trainer(sess, model, data, config, logger)
 trainer.train()
 
+loss, pred, x, y = trainer.test()
+
+
+
+#Test on 
+
 #Test XOR data generator
-next(data.next_batch())
+#next(data.next_batch())

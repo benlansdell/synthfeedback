@@ -3,10 +3,12 @@ import tensorflow as tf
 
 from numpy import random as rng
 import numpy as np 
+from functools import reduce
 
 from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
 
 """All RNN models"""
+
 class BPTTModel(BaseModel):
     def __init__(self, config):
         super(BPTTModel, self).__init__(config)
@@ -42,6 +44,8 @@ class BPTTModel(BaseModel):
         U = tf.get_variable('U', [in_dim, state_size])
         W = tf.get_variable('W', [state_size+1, state_size])
     
+        self.init_state = init_state
+
         state = init_state
         state_p = init_state
         rnn_outputs = []
@@ -52,10 +56,12 @@ class BPTTModel(BaseModel):
             rnn_outputs.append(state)
             final_state = rnn_outputs[-1]
     
+        self.final_state = final_state
+
         V = tf.get_variable('V', [state_size+1, 1])
         logits = [tf.squeeze(tf.matmul(tf.concat([rnn_output, ones0], 1), V)) for rnn_output in rnn_outputs]
         logits_as_t = tf.stack(logits, axis=1)
-        y_as_list = tf.unstack(y, num=num_steps, axis=2)
+        y_as_list = tf.unstack(tf.squeeze(y), num=num_steps, axis=1)
         loss = [tf.pow(logit-label, 2)/2 for logit, label in zip(logits, y_as_list)]
         losses = [tf.reduce_sum(tf.pow(logit-label, 2))/2 for logit, label in zip(logits, y_as_list)]
         total_loss = tf.reduce_mean(losses)
@@ -67,6 +73,8 @@ class BPTTModel(BaseModel):
         new_U = U.assign(U - learning_rate*grad_U)            
         new_W = W.assign(W - learning_rate*grad_W)           
         new_V = V.assign(V - learning_rate*grad_V)
+        #self.acc = tf.reduce_mean(tf.equal((y_as_list[-1] > 0),((rnn_inputs[-2]+1)/2)))
+        self.pred = logits
         self.loss = total_loss
         self.x = x
         self.y = y      
