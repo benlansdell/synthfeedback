@@ -52,7 +52,7 @@ class SmallXORDataGenerator(object):
                 X[i,1,stim_onset2[i,j],j] = X2[i,j]
                 X1p = (X1[i,j] + 1)/2
                 X2p = (X2[i,j] + 1)/2
-                Yp = 2*(X1p^X2p)-1
+                Yp = 2*(X1p!=X2p)-1
                 Y[i,0,delay_time[i,j]+1,j] = Yp
         Y = np.array(Y, dtype = float)
 
@@ -99,7 +99,7 @@ class XORDataGenerator(object):
                 X[i,1,stim_onset2[i,j],j] = X2[i,j]
                 X1p = (X1[i,j] + 1)/2
                 X2p = (X2[i,j] + 1)/2
-                Yp = 2*(X1p^X2p)-1
+                Yp = 2*(X1p!=X2p)-1
                 Y[i,0,delay_time[i,j]+1,j] = Yp
         Y = np.array(Y, dtype = float)
 

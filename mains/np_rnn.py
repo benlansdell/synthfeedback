@@ -1,10 +1,11 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]=""
+#os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 import tensorflow as tf
 
 from data_loader.data_generator import SmallXORDataGenerator, XORDataGenerator
-from models.rnnmodels import BPTTModel#, FARNNModel, NPRNNModel, 
+from models.rnnmodels import BPTTModel, FARNNModel#, NPRNNModel, 
 from trainers.rnn_trainer import RNNTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -12,19 +13,20 @@ from utils.logger import LoggerNumpy, Logger
 from utils.utils import get_args
 
 #Select models:
-model_name = 'bptt'
-Model = BPTTModel
-Data = XORDataGenerator
-Trainer = RNNTrainer
+model_name = 'fa_rnn'
 
-#if model_name == 'bptt':
-#    Model = BPTTModel
-#    Data = XORDataGenerator
-#    Trainer = RNNTrainer
-#elif model_name == 'fa':
-#    Model = FARNNModel
-#    Data = XORDataGenerator
-#    Trainer = RNNTrainer
+if model_name == 'bptt':
+    Model = BPTTModel
+    Data = XORDataGenerator
+    Trainer = RNNTrainer
+elif model_name == 'bptt_short':
+    Model = BPTTModel
+    Data = SmallXORDataGenerator
+    Trainer = RNNTrainer
+elif model_name == 'fa_rnn':
+    Model = FARNNModel
+    Data = XORDataGenerator
+    Trainer = RNNTrainer
 #elif model_name == 'nodepert':
 #    Model = NPRNNModel
 #    Data = XORDataGenerator
