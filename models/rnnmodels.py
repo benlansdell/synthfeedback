@@ -41,8 +41,8 @@ class BPTTModel(BaseModel):
         rnn_inputs = tf.unstack(x, axis=2)
         alignment = tf.zeros([in_dim, state_size], dtype=np.float32)
         ones0 = tf.ones([batch_size, 1], tf.float32)
-        U = tf.get_variable('U', [in_dim, state_size])
-        W = tf.get_variable('W', [state_size+1, state_size])
+        U = tf.get_variable('U2', [in_dim, state_size])
+        W = tf.get_variable('W2', [state_size+1, state_size])
     
         self.init_state = init_state
 
@@ -58,7 +58,7 @@ class BPTTModel(BaseModel):
     
         self.final_state = final_state
 
-        V = tf.get_variable('V', [state_size+1, 1])
+        V = tf.get_variable('V2', [state_size+1, 1])
         logits = [tf.squeeze(tf.matmul(tf.concat([rnn_output, ones0], 1), V)) for rnn_output in rnn_outputs]
         logits_as_t = tf.stack(logits, axis=1)
         y_as_list = tf.unstack(tf.squeeze(y), num=num_steps, axis=1)
@@ -73,7 +73,7 @@ class BPTTModel(BaseModel):
         new_U = U.assign(U - learning_rate*grad_U)            
         new_W = W.assign(W - learning_rate*grad_W)           
         new_V = V.assign(V - learning_rate*grad_V)
-        #self.acc = tf.reduce_mean(tf.equal((y_as_list[-1] > 0),((rnn_inputs[-2]+1)/2)))
+        self.acc = tf.reduce_mean(tf.to_float(tf.equal((y_as_list[-1] > 0),(logits[-1]>0))))
         self.pred = logits
         self.loss = total_loss
         self.x = x

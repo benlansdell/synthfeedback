@@ -13,8 +13,8 @@ class RNNTrainer(BaseTrain):
         losses_test = []
         self.training_state = np.zeros((self.config.batch_size, self.config.state_size[0]))
         for _ in loop:
-            loss = self.train_step()
-            loss_test, _, _, _ = self.test()
+            loss, train_acc = self.train_step()
+            loss_test, test_acc, _, _, _ = self.test()
             losses.append(loss)
             losses_test.append(loss_test)
 
@@ -41,7 +41,7 @@ class RNNTrainer(BaseTrain):
             #summaries_dict['metrics'] = np.array(metrics)
             summaries_dict[metric_tags[idx]] = metrics[idx]
 
-        print("Epoch: %d Train loss: %f Test loss: %f"%(cur_ep, loss, loss_test))
+        print("Epoch: %d Train loss: %f Test loss: %f Train acc: %f Test acc: %f"%(cur_ep, loss, loss_test, train_acc, test_acc))
         if self.logger:
             self.logger.summarize(cur_ep, summaries_dict=summaries_dict)
             self.model.save(self.sess)
@@ -50,13 +50,14 @@ class RNNTrainer(BaseTrain):
         batch_x, batch_y = next(self.data.next_batch())
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
                                 self.model.init_state:self.training_state, self.model.is_training: True}
-        _, loss, self.training_state = self.sess.run([self.model.train_step, self.model.loss,\
-                            self.model.final_state], feed_dict=feed_dict)
-        return loss
+        _, loss, self.training_state, acc = self.sess.run([self.model.train_step, self.model.loss,\
+                            self.model.final_state, self.model.acc], feed_dict=feed_dict)
+        return loss, acc
 
     def test(self):
         batch_x, batch_y = next(self.data.test_batch())
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
-                                                self.model.is_training: True}
-        loss, pred = self.sess.run([self.model.loss, self.model.pred], feed_dict=feed_dict)
-        return loss, pred, batch_x, batch_y
+                                self.model.init_state:self.training_state, self.model.is_training: True}
+        loss, acc, pred, self.training_state = self.sess.run([self.model.loss, self.model.acc, self.model.pred, \
+                                self.model.final_state], feed_dict=feed_dict)
+        return loss, acc, pred, batch_x, batch_y

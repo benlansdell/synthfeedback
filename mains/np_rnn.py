@@ -41,7 +41,7 @@ logger = Logger(sess, config)
 trainer = Trainer(sess, model, data, config, logger)
 trainer.train()
 
-loss, pred, x, y = trainer.test()
+loss, acc, pred, x, y = trainer.test()
 
 
 
