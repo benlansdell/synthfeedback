@@ -2,7 +2,7 @@
   "exp_name": "bptt",
   "num_epochs": 30,
   "num_iter_per_epoch": 100,
-  "learning_rate": 0.1,
+  "learning_rate": 1e-3,
   "batch_size": 200,
   "state_size": [50],
   "max_to_keep":5,

@@ -80,7 +80,7 @@ class XORDataGenerator(object):
         self.separation = 3
         self.var = 3
 
-    def next_batch(self):
+    def next_batch(self, bs = None):
         batch_size = self.config.batch_size
         X = np.zeros((batch_size, self.in_dim, self.trial_length, self.n_trials))
         Y = np.zeros((batch_size, 1, self.trial_length, self.n_trials))
@@ -108,7 +108,7 @@ class XORDataGenerator(object):
             y = Y[:, :, :, i]
             yield (x, y)
 
-    def test_batch(self):
+    def test_batch(self, bs = None):
         return self.next_batch()
 
 class LinearDataGenerator(object):
