@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=''
+os.environ["CUDA_VISIBLE_DEVICES"]='3'
 
 import tensorflow as tf
 import numpy as np
@@ -21,7 +21,7 @@ n=10 # Output size
 
 #Training parameters 
 batch_size = 50
-eta=tf.constant(0.0001,dtype=tf.float32)
+eta=tf.constant(0.00001,dtype=tf.float32)
 
 #Training data inputs
 '''x=tf.placeholder(tf.float64,[None,inshape], name = 'x')
@@ -77,19 +77,19 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return new_A, new_W 
 '''
 init = tf.global_variables_initializer()
-iteration= 100000
+iteration= 10000
+#learn_rate= np.logspace(-4,-3,3)
 epoch=10
 store_al=np.zeros((epoch,iteration))
 store_err=np.zeros((epoch,iteration))
 store_acc=np.zeros((epoch,iteration))
 with tf.Session() as sess:
     sess.run(init)
+    
     for epoch_no in range(epoch):
         for idx in range(iteration):
             (train_x, train_y) = mnist.train.next_batch(batch_size)
-
-            #sess.run(updatefa(A,W), feed_dict={x: train_x, y: train_y})
-            _,err,align,acc = sess.run([train_step,loss,alignment,accuracy], feed_dict={x: train_x, y: train_y})
+            _,err,align,acc =sess.run([train_step,loss,alignment,accuracy],feed_dict={x: train_x, y: train_y})
             if np.isnan(err)==True:
                 print("\n\tModel does not converge!!!\n")
                 break        
@@ -97,7 +97,7 @@ with tf.Session() as sess:
             store_al[epoch_no,idx]=align
             store_acc[epoch_no,idx]=acc
         print("Run no: %d completed"%epoch_no)
-        
-with open("MNIST-FA(larger-eta).pkl",'wb') as f:
-    pickle.dump([store_err,store_al,store_acc,iteration,epoch],f)
+
+with open("MNIST-FA(200000).pkl",'wb') as f:
+    pickle.dump([store_err,store_al,store_acc,iteration],f)
 

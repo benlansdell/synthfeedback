@@ -107,7 +107,7 @@ training_metrics = [alignment, norm_W, norm_B, error_FA, eigs[0]]
 
 
 init = tf.global_variables_initializer()
-iteration= 100000
+iteration= 200000
 epoch=10
 store_al=np.zeros((epoch,iteration))
 store_df=np.zeros((epoch,iteration))

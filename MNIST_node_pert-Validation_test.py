@@ -4,6 +4,8 @@
 # In[1]:
 
 import os
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
 os.environ["CUDA_VISIBLE_DEVICES"]=''
 import tensorflow as tf
 import numpy as np
@@ -124,7 +126,7 @@ store_err=np.zeros([len(combo),iteration])
 
 #plt.imshow(loss)
 non_converge=[]
-with tf.Session() as sess:
+with tf.Session(config=config) as sess:
     for i in range(len(combo)):
         sess.run(init)
         print("Present combo:",i+1)

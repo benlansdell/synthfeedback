@@ -1,9 +1,0 @@
-embeddings {
-  tensor_name: "mnistembedding_3:0"
-  metadata_path: "minimalsample/metadata.tsv"
-  sprite {
-    image_path: "minimalsample/mnistdigits.png"
-    single_image_dim: 28
-    single_image_dim: 28
-  }
-}
