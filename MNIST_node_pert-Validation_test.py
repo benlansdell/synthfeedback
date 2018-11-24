@@ -4,17 +4,16 @@
 # In[1]:
 
 import os
+
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
+import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-os.environ["CUDA_VISIBLE_DEVICES"]=''
-import tensorflow as tf
+
 import numpy as np
 import numpy.random as rng
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.npmodels import NPModel4,DirectNPModel4,AENPModel,AEDFANPModel
-from trainers.sf_trainer import SFTrainer, AESFTrainer
-from utils.config import process_config
-import shutil
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -159,7 +158,7 @@ with tf.Session(config=config) as sess:
 
 
 # In[ ]:
-with open('Analysis_MNIST.pkl','wb') as f:
+with open('/home/prashanth/synthfeedback/Pickles/Analysis_MNIST.pkl','wb') as f:
     pickle.dump([store_al,store_df,store_err,combo,eta_1,eta_lmda,non_converge,iteration],f)
 '''
 from pylab import *

@@ -1,14 +1,16 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]='3'
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
 import numpy as np
 import numpy.random as rng
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
+
 import random
-import operator
 from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
@@ -21,7 +23,7 @@ n=10 # Output size
 
 #Training parameters 
 batch_size = 50
-eta=tf.constant(0.00001,dtype=tf.float32)
+eta=tf.constant(0.0001,dtype=tf.float32)
 
 #Training data inputs
 '''x=tf.placeholder(tf.float64,[None,inshape], name = 'x')
@@ -53,18 +55,20 @@ trainable=[A,W]
           
 e=y_pred-y
 loss = tf.reduce_sum(tf.pow(e, 2))/2
-grad_W=tf.gradients(xs=W,ys=loss)[0]
+'''grad_W=tf.gradients(xs=W,ys=loss)[0]
 grad_A=tf.gradients(xs=A,ys=loss)[0]
-
+'''
 delta_bp = tf.matmul(e, tf.transpose(W))[0,:]
 delta_fa = tf.matmul(e, tf.transpose(B))[0,:]
 
 alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
 # eigs = tf_eigvals(tf.matmul(tf.transpose(B), W))
-
+'''
 new_W = W.assign(W - eta*grad_W)
 new_A = A.assign(A - eta*grad_A)            
 train_step = [new_W, new_A]
+'''
+train_step=tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
 correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 '''def updatefa(A,W):    
@@ -77,13 +81,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return new_A, new_W 
 '''
 init = tf.global_variables_initializer()
-iteration= 10000
+iteration= 100000
 #learn_rate= np.logspace(-4,-3,3)
 epoch=10
 store_al=np.zeros((epoch,iteration))
 store_err=np.zeros((epoch,iteration))
 store_acc=np.zeros((epoch,iteration))
-with tf.Session() as sess:
+with tf.Session(config=config) as sess:
     sess.run(init)
     
     for epoch_no in range(epoch):
@@ -98,6 +102,6 @@ with tf.Session() as sess:
             store_acc[epoch_no,idx]=acc
         print("Run no: %d completed"%epoch_no)
 
-with open("MNIST-FA(200000).pkl",'wb') as f:
+with open("/home/prashanth/synthfeedback/Pickles/MNIST-FA.pkl",'wb') as f:
     pickle.dump([store_err,store_al,store_acc,iteration],f)
 

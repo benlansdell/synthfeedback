@@ -1,31 +1,24 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=''
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
-from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.npmodels import NPModel4,DirectNPModel4,AENPModel,AEDFANPModel
-from trainers.sf_trainer import SFTrainer, AESFTrainer
-from utils.config import process_config
-import shutil
+
 import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
 import numpy as np
 import numpy.random as rng
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
-from models.npmodels import NPModel4,DirectNPModel4,AENPModel,AEDFANPModel
-from trainers.sf_trainer import SFTrainer, AESFTrainer
-from utils.config import process_config
-import shutil
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 import pickle
-import operator
 from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 #p = self.config.state_size[0]
 p=784# inshape 
 m =1000# hiddenshap
-j = 10#outshpae
+j = 10#outshape
 #n = 10
 var_xi = 0.1
 learning_rate=6.30957344e-05
@@ -107,7 +100,7 @@ training_metrics = [alignment, norm_W, norm_B, error_FA, eigs[0]]
 
 
 init = tf.global_variables_initializer()
-iteration= 200000
+iteration= 100000
 epoch=10
 store_al=np.zeros((epoch,iteration))
 store_df=np.zeros((epoch,iteration))
@@ -116,7 +109,7 @@ store_acc=np.zeros((epoch,iteration))
 # store_out=np.zeros((N, 4))
 # x_in=[[0,0],[0,1],[1,0],[1,1]]
 batch_size=50
-with tf.Session() as sess:
+with tf.Session(config=config) as sess:
 
     sess.run(init)
     for epoch_no in range(epoch):
@@ -135,6 +128,5 @@ with tf.Session() as sess:
         print("Run No:%d completed"%epoch_no)
 #             store_df.append(diff)
         #print(align)
- 
-with open("MNIST_NP.pkl",'wb') as f:
+with open("/home/prashanth/synthfeedback/Pickles/MNIST_NP.pkl",'wb') as f:
     pickle.dump([store_err,store_al,store_acc,iteration,epoch],f)
