@@ -1,7 +1,10 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=''
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 
 import tensorflow as tf
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+
 import numpy as np
 import numpy.random as rng
 import pickle
@@ -76,11 +79,11 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return new_A, new_W 
 '''
 init = tf.global_variables_initializer()
-iteration= 200000
+iteration= 100000
 epoch=10
 store_acc=np.zeros((epoch,iteration))
 store_err=np.zeros((epoch,iteration))
-with tf.Session() as sess:
+with tf.Session(config=config) as sess:
     sess.run(init)
     for epoch_no in range(epoch):
         for idx in range(iteration):
@@ -95,6 +98,6 @@ with tf.Session() as sess:
             store_acc[epoch_no,idx]=acc
         print("Run no: %d completed"%epoch_no)
         
-with open("MNIST-BP.pkl",'wb') as f:
+with open("/home/prashanth/synthfeedback/Pickles/MNIST-BP.pkl",'wb') as f:
     pickle.dump([store_err,store_acc,iteration,epoch],f)
 
