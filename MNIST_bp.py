@@ -58,6 +58,7 @@ trainable=[A,W]
           
 e=y_pred-y
 loss = tf.reduce_sum(tf.pow(e, 2))/2
+'''
 grad_W=tf.gradients(xs=W,ys=loss)[0]
 grad_A=tf.gradients(xs=A,ys=loss)[0]
 
@@ -66,7 +67,8 @@ grad_A=tf.gradients(xs=A,ys=loss)[0]
 new_W = W.assign(W - eta*grad_W)
 new_A = A.assign(A - eta*grad_A)            
 train_step = [new_W, new_A]
-
+'''
+train_step=tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
 correct_prediction = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 '''def updatefa(A,W):    
