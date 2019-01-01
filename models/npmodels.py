@@ -249,14 +249,15 @@ class NPModel4_ExactLsq(BaseModel):
     def __init__(self, config):
         super(NPModel4_ExactLsq, self).__init__(config)
         self.build_model()
-        self.init_saver()
+        #Whether to save or not....
+        #self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
         self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
         self.y = tf.placeholder(tf.float32, shape=[None, 10])
 
-        # set initial feedforward and feedback weights
+        #Set initial feedforward and feedback weights
         p = self.config.state_size[0]
         #m = 512
         #j = 200
