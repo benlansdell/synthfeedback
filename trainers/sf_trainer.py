@@ -4,8 +4,12 @@ import numpy as np
 import tensorflow as tf
 
 class SFTrainer(BaseTrain):
+    #def __init__(self, sess, model, data, config, logger, options, run_metadata):
     def __init__(self, sess, model, data, config, logger):
         super(SFTrainer, self).__init__(sess, model, data, config, logger)
+
+        #self.options = options
+        #self.run_metadata = run_metadata
 
     def train_epoch(self):
         loop = tqdm(range(self.config.num_iter_per_epoch))
@@ -28,7 +32,7 @@ class SFTrainer(BaseTrain):
 
         #Check for convergence issues...
         for x in self.model.trainable:
-            if self.sess.run(tf.is_nan(x)).any():
+            if np.isnan(self.sess.run(x)).any():
                 raise ValueError("nan encountered. Model does not converge.")
         if np.isnan(loss):
             raise ValueError("nan encountered. Model does not converge.")
@@ -59,6 +63,9 @@ class SFTrainer(BaseTrain):
                                                 self.model.is_training: True}
         _, loss, acc = self.sess.run([self.model.train_step, self.model.loss,\
                                     self.model.accuracy], feed_dict=feed_dict)
+
+        #Logs data for viewing in timeline in chrome. 
+        #                            options=self.options, run_metadata=self.run_metadata)
         return loss, acc
 
     def test(self):

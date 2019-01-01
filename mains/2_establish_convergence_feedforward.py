@@ -56,15 +56,17 @@ def main():
     for n in range(N):
         var_val = [var_vals[n]]
         set_hyperparameters(config, attr, var_val)
+        tf.reset_default_graph()
         model = Model(config)
         data = Data(config)
         print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
         for m in range(M):
             with tf.Session(config=tfconfig) as sess:
-                options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                run_metadata = tf.RunMetadata()
+                #options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                #run_metadata = tf.RunMetadata()
                 logger = LoggerNumpy(sess, config, model)
                 model.load(sess)
+                #trainer = Trainer(sess, model, data, config, logger, options, run_metadata)
                 trainer = Trainer(sess, model, data, config, logger)
                 try:
                     trainer.train()
@@ -77,10 +79,10 @@ def main():
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 
-                fetched_timeline = timeline.Timeline(run_metadata.step_stats)
-                chrome_trace = fetched_timeline.generate_chrome_trace_format()
-                with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
-                    f.write(chrome_trace)
+                #fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+                #chrome_trace = fetched_timeline.generate_chrome_trace_format()
+                #with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
+                #    f.write(chrome_trace)
 
         #Save after each run
         fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output.npz"

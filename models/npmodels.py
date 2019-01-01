@@ -341,7 +341,7 @@ class NPModel4_ExactLsq(BaseModel):
             grad_S2 = tf.matmul(np_est2, e)
 
             #Update V and S
-            new_V1 = V1.assign(V1 + grad_V1)
+            new_V1 = V1.assign(V1 + grad_V1)                                            
             new_V2 = V2.assign(V2 + grad_V2)            
             new_S1 = S1.assign(S1 + grad_S1)
             new_S2 = S2.assign(S2 + grad_S2)            
