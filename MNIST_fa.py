@@ -81,7 +81,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     return new_A, new_W 
 '''
 init = tf.global_variables_initializer()
-iteration= 100000
+iteration= 200000
 #learn_rate= np.logspace(-4,-3,3)
 epoch=10
 store_al=np.zeros((epoch,iteration))

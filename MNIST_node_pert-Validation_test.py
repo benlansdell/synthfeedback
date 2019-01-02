@@ -4,7 +4,6 @@
 # In[1]:
 
 import os
-
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
 import tensorflow as tf
 config = tf.ConfigProto()
@@ -15,7 +14,6 @@ import numpy.random as rng
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import pickle
 import itertools
@@ -91,7 +89,7 @@ eigs = tf_eigvals(tf.matmul(tf.transpose(B), W))
 lmda = tf.matmul(e, tf.transpose(B[0:m,:]))
 grad_W = tf.gradients(xs=W, ys=loss)[0]
 grad_A = tf.matmul(tf.transpose(x_aug), tf.multiply(h_prime, lmda))
-grad_B = tf.matmul(tf.matmul(B, tf.transpose(e)) - tf.transpose(xi)*(loss - loss_0)/var_xi, e)
+grad_B = tf.matmul(tf.matmul(B, tf.transpose(e)) - tf.transpose(xi)*(loss - loss_0)/var_xi/var_xi, e)
 
 new_W = W.assign(W - learning_rate*grad_W)
 new_A = A.assign(A - learning_rate*grad_A)            
@@ -99,8 +97,8 @@ new_B = B.assign(B - lmda_learning_rate*grad_B)
 train_step = [new_W, new_A, new_B]
 
 
-# correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(y, 1))
-# accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # #Also need to add eigenvector stuff
 # training_metrics = [alignment, norm_W, norm_B, error_FA, eigs[0]]
@@ -115,12 +113,12 @@ eta_1[1::]=np.logspace(-3,-6,6)
 eta_lmda=np.zeros(7)
 eta_lmda[1::]=np.logspace(-3,-6,6)
 combo=list(itertools.product(np.sort(eta_1),np.sort(eta_lmda)))
-iteration=10000
+iteration=100000
 store_al=np.zeros([len(combo),iteration])
 store_df=np.zeros([len(combo),iteration])
 # store_err=[[] for i in range(len(combo))]
 store_err=np.zeros([len(combo),iteration])
-
+store_acc=np.zeros([len(combo),iteration])
 #loss = np.zeros((N, N))
 
 #plt.imshow(loss)
@@ -136,7 +134,7 @@ with tf.Session(config=config) as sess:
         flag=0
         for idx in range(iteration):
             (train_x, train_y) = mnist.train.next_batch(batch_size) 
-            _,align,diff,err=sess.run([train_step,alignment,norm_diff,loss_0],feed_dict={x: train_x, y: train_y,
+            _,align,diff,err,acc=sess.run([train_step,alignment,norm_diff,loss_0,accuracy],feed_dict={x: train_x, y: train_y,
                                                                                         learning_rate:learning_rate1,
                                                                                          lmda_learning_rate:lmda_learning_rate1})
             if flag==0:
@@ -150,6 +148,7 @@ with tf.Session(config=config) as sess:
             store_df[i,idx]=diff
 #             store_err[i].append(err)
             store_err[i,idx]=err
+            store_acc[i,idx]=acc
 #             if (idx+1)%500==0:
 #                 print("Iteration count:",idx+1)
 
@@ -158,8 +157,8 @@ with tf.Session(config=config) as sess:
 
 
 # In[ ]:
-with open('/home/prashanth/synthfeedback/Pickles/Analysis_MNIST.pkl','wb') as f:
-    pickle.dump([store_al,store_df,store_err,combo,eta_1,eta_lmda,non_converge,iteration],f)
+with open('/home/prashanth/synthfeedback/Pickles/MNIST_validation_test.pkl','wb') as f:
+    pickle.dump([store_al,store_acc,store_df,store_err,combo,eta_1,eta_lmda,non_converge,iteration],f)
 '''
 from pylab import *
 plt.figure(figsize=(30,30))

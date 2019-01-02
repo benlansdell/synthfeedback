@@ -45,6 +45,16 @@ def fc_layer_noise(prev, W, var_xi, config):
     xi = tf.random_normal(shape=tf.shape(n), mean=0.0, stddev=var_xi, dtype=tf.float32)
     return n + xi, xi
 
+def tf_align(x, y):
+    #Check they have the right dimensions...
+    #if x.get_shape() != y.get_shape():
+    #print "Vectors different shape"
+    #print x.get_shape(), y.get_shape()
+    theta = 180/np.pi*tf.abs(tf.acos(tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)))
+    #if (theta > 90) and (theta < 180):
+    #    theta = 90 - theta
+    return tf.cond(tf.logical_and(tf.less(90.0,theta), tf.less(theta,180.0)), lambda: 180.0 - theta, lambda: theta)
+
 class NPModel(BaseModel):
     def __init__(self, config):
         super(NPModel, self).__init__(config)
@@ -112,8 +122,7 @@ class NPModel(BaseModel):
 
             new_W = W.assign(W - self.config.learning_rate*grad_W)
             new_A = A.assign(A - self.config.learning_rate*grad_A)            
-            new_B = B.assign(B - self.config.lmda_learning_rate
-                             *grad_B)            
+            new_B = B.assign(B - self.config.lmda_learning_rate*grad_B)            
             self.train_step = [new_W, new_A, new_B]
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -139,8 +148,10 @@ class NPModel4(BaseModel):
 
         # set initial feedforward and feedback weights
         p = self.config.state_size[0]
-        m = 512
-        j = 200
+        #m = 512
+        #j = 200
+        m = 50
+        j = 20
         n = 10
         var_xi = self.config.var_xi
 
@@ -154,8 +165,8 @@ class NPModel4(BaseModel):
         A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
         W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
         W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
-        B1 = tf.Variable(rng.randn(m+1,j)*alpha3, name="feedback_weights1", dtype=tf.float32)
-        B2 = tf.Variable(rng.randn(j+1,n)*alpha3, name="feedback_weights2", dtype=tf.float32)
+        B1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="feedback_weights1", dtype=tf.float32)
+        B2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="feedback_weights2", dtype=tf.float32)
 
         # network architecture with ones added for bias terms
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
@@ -165,16 +176,16 @@ class NPModel4(BaseModel):
         h1_aug = tf.concat([h1, e1], 1)
         xi1 = tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
         h1_tilde = h1_aug + xi1
-        h2 = tf.sigmoid(tf_matmul_r(h1_tilde, W1, B1))
+        h2 = tf.sigmoid(tf.matmul(h1_tilde, W1))
         h2_aug = tf.concat([h2, e1], 1)
         xi2 = tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
         h2_tilde = h2_aug + xi2
-        y_p = tf_matmul_r(h2_tilde, W2, B2)
+        y_p = tf.matmul(h2_tilde, W2)
 
         #Compute unperturbed output
-        h2_0 = tf.sigmoid(tf_matmul_r(h1_aug, W1, B1))
+        h2_0 = tf.sigmoid(tf.matmul(h1_aug, W1))
         h2_0_aug = tf.concat([h2_0, e1], 1)
-        y_p_0 = tf_matmul_r(h2_0_aug, W2, B2)
+        y_p_0 = tf.matmul(h2_0_aug, W2)
 
         self.trainable = [A, W1, W2, B1, B2]
 
@@ -194,44 +205,171 @@ class NPModel4(BaseModel):
             lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
             d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
-            grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi, d2)
-            grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi, e)
-
-            #Feedback data for saving
-            #Only take first item in epoch
-            delta_bp2 = tf.matmul(e, tf.transpose(W2[0:m,:]))[0,:]
-            delta_fa2 = tf.matmul(e, tf.transpose(B2[0:m,:]))[0,:]
-            delta_bp1 = tf.matmul(d2, tf.transpose(W1[0:m,:]))[0,:]
-            delta_fa1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))[0,:]
-            norm_W1 = tf.norm(W1)
-            norm_W2 = tf.norm(W2)
-            norm_B1 = tf.norm(B1)
-            norm_B2 = tf.norm(B2)
-            error_FA1 = tf.norm(delta_bp1 - delta_fa1)
-            error_FA2 = tf.norm(delta_bp2 - delta_fa2)
-            alignment1 = tf.reduce_sum(tf.multiply(delta_fa1,delta_bp1))/tf.norm(delta_fa1)/tf.norm(delta_bp1)
-            alignment2 = tf.reduce_sum(tf.multiply(delta_fa2,delta_bp2))/tf.norm(delta_fa2)/tf.norm(delta_bp2)
-            eigs1 = tf_eigvals(tf.matmul(tf.transpose(B1), W1))
-            eigs2 = tf_eigvals(tf.matmul(tf.transpose(B2), W2))
+            grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi, d2)
+            grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi, e)
 
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_A = A.assign(A - self.config.learning_rate*grad_A)
+
+            #Train with SGD
             new_B1 = B1.assign(B1 - self.config.lmda_learning_rate*grad_B1)
             new_B2 = B2.assign(B2 - self.config.lmda_learning_rate*grad_B2)
+
             self.train_step = [new_W1, new_A, new_B1, new_W2, new_B2]
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-            #Also need to add eigenvector stuff
-            #self.training_metrics = [alignment, norm_W, norm_B, error_FA, eigs[0]]
-            self.training_metrics = []
-            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            #Save training metrics
+            Bs = [B1, B2]
+            Ws = [W1, W2]
+            es = [d2, e]
+            gradBs = [tf.norm(grad_B1), tf.norm(grad_B2)]
+            self._set_training_metrics(Ws, Bs, es, gradBs)
 
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+    def _set_training_metrics(self, Ws, Bs, es, gradBs):
+        for idx in range(len(Bs)):
+            delta_fa = tf.matmul(es[idx], tf.transpose(Bs[idx]))[0,:]
+            delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
+            alignment = tf.abs(tf_align(delta_fa, delta_bp))
+            norm = tf.norm(Ws[idx] - Bs[idx], 2)
+            self.training_metric_tags.append('align_B%d'%(idx+2))
+            self.training_metrics.append(alignment)
+            self.training_metric_tags.append('norm_W%d_B%d'%(idx+2, idx+2))
+            self.training_metrics.append(norm)
+            self.training_metric_tags.append('norm_gradB%d'%(idx+2))
+            self.training_metrics.append(gradBs[idx])
+
+class NPModel4_ExactLsq(BaseModel):
+    #Four layers version
+    def __init__(self, config):
+        super(NPModel4_ExactLsq, self).__init__(config)
+        self.build_model()
+        self.init_saver()
+
+    def build_model(self):
+        self.is_training = tf.placeholder(tf.bool)
+        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float32, shape=[None, 10])
+
+        # set initial feedforward and feedback weights
+        p = self.config.state_size[0]
+        #m = 512
+        #j = 200
+        m = 50
+        j = 20
+        n = 10
+        var_xi = self.config.var_xi
+        gamma = self.config.gamma
+
+        #Scale weight initialization
+        alpha0 = np.sqrt(2.0/p)
+        alpha1 = np.sqrt(2.0/m)
+        alpha2 = np.sqrt(2.0/j)
+        alpha3 = 1
+
+        #Plus one for bias terms
+        A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
+        W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
+        W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
+
+        V1 = tf.Variable(gamma*np.eye(j), dtype=tf.float32)
+        V2 = tf.Variable(gamma*np.eye(n), dtype=tf.float32)
+        S1 = tf.Variable(np.zeros((m+1,j)), dtype=tf.float32)
+        S2 = tf.Variable(np.zeros((j+1,n)), dtype=tf.float32)
+
+        #The exact least squares solution for synth grad estimation
+        B1 = tf.matmul(S1, tf.matrix_inverse(V1))
+        B2 = tf.matmul(S2, tf.matrix_inverse(V2))
+
+        # network architecture with ones added for bias terms
+        e0 = tf.ones([self.config.batch_size, 1], tf.float32)
+        e1 = tf.ones([self.config.batch_size, 1], tf.float32)
+        x_aug = tf.concat([self.x, e0], 1)
+        h1 = tf.sigmoid(tf.matmul(x_aug, A))
+        h1_aug = tf.concat([h1, e1], 1)
+        xi1 = tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
+        h1_tilde = h1_aug + xi1
+        h2 = tf.sigmoid(tf.matmul(h1_tilde, W1))
+        h2_aug = tf.concat([h2, e1], 1)
+        xi2 = tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
+        h2_tilde = h2_aug + xi2
+        y_p = tf.matmul(h2_tilde, W2)
+
+        #Compute unperturbed output
+        h2_0 = tf.sigmoid(tf.matmul(h1_aug, W1))
+        h2_0_aug = tf.concat([h2_0, e1], 1)
+        y_p_0 = tf.matmul(h2_0_aug, W2)
+
+        self.trainable = [A, W1, W2, V1, V2, S1, S2]
+
+        with tf.name_scope("loss"):
+            #mean squared error
+            self.loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            self.loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2))/2
+            e = (y_p_0 - self.y)
+            h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
+            h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
+
+            #Compute updates for W and A (based on B)
+            grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
+            lmda2 = tf.matmul(e, tf.transpose(B2[0:j,:]))
+            d2 = np.multiply(h2_prime_0, lmda2)
+            grad_W1 = tf.matmul(tf.transpose(h1_aug), d2)
+            lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
+            d1 = np.multiply(h1_prime_0, lmda1)
+            grad_A = tf.matmul(tf.transpose(x_aug), d1)
+
+            np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
+            np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
+            #grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - np_est1, d2)
+            #grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - np_est2, e)
+
+            new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
+            new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
+            new_A = A.assign(A - self.config.learning_rate*grad_A)
+
+            #Train with exact least squares solution
+            grad_V1 = tf.matmul(tf.transpose(d2), d2)
+            grad_V2 = tf.matmul(tf.transpose(e), e)
+            grad_S1 = tf.matmul(np_est1, d2)
+            grad_S2 = tf.matmul(np_est2, e)
+
+            #Update V and S
+            new_V1 = V1.assign(V1 + grad_V1)
+            new_V2 = V2.assign(V2 + grad_V2)            
+            new_S1 = S1.assign(S1 + grad_S1)
+            new_S2 = S2.assign(S2 + grad_S2)            
+            self.train_step = [new_W1, new_A, new_V1, new_S1, new_W2, new_V2, new_S2]
+
+            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+            #Save training metrics
+            Bs = [B1, B2]
+            Ws = [W1, W2]
+            es = [d2, e]
+            #gradBs = [tf.norm(grad_B1), tf.norm(grad_B2)]
+            self._set_training_metrics(Ws, Bs, es)
+
+    def init_saver(self):
+        # here you initialize the tensorflow saver that will be used in saving the checkpoints.
+        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+    def _set_training_metrics(self, Ws, Bs, es):
+        for idx in range(len(Bs)):
+            delta_fa = tf.matmul(es[idx], tf.transpose(Bs[idx]))[0,:]
+            delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
+            alignment = tf.abs(tf_align(delta_fa, delta_bp))
+            norm = tf.norm(Ws[idx] - Bs[idx])/tf.norm(Ws[idx])
+            self.training_metric_tags.append('align_B%d'%(idx+2))
+            self.training_metrics.append(alignment)
+            self.training_metric_tags.append('norm_W%d_B%d'%(idx+2, idx+2))
+            self.training_metrics.append(norm)
 
 class DirectNPModel4(BaseModel):
     #Four layers version
@@ -601,10 +739,9 @@ class AEDFANPModel(BaseModel):
             delta_fa = tf.matmul(e, tf.transpose(Bs[idx][:,:]))[0,:]
             delta_bp = dls[idx][0,:]
             #error_fa = tf.norm(delta_fa - dls[idx])
-            alignment = 180/np.pi*tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
+            alignment = tf.reduce_sum(tf.multiply(delta_fa,delta_bp))/tf.norm(delta_fa)/tf.norm(delta_bp)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
-
 
         #Alignment of l_i with top k singular values of W_{i+1}
 
@@ -617,6 +754,4 @@ class AEDFANPModel(BaseModel):
 
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
-        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
-
-
+self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
