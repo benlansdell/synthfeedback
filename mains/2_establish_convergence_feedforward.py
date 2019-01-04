@@ -39,10 +39,10 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    #var_vals = [1e-3, 1e-2, 1e-1, 1, 10]
-    var_vals = [1e-1]
+    var_vals = [1e-3, 1e-2, 1e-1, 1]
+    #var_vals = [1e-1]
     N = len(var_vals)
-    M = 3
+    M = 10
     T = config.num_epochs+1
 
     n_tags = 8
@@ -79,6 +79,7 @@ def main():
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 
+                #See here: https://towardsdatascience.com/howto-profile-tensorflow-1a49fb18073d
                 #fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                 #chrome_trace = fetched_timeline.generate_chrome_trace_format()
                 #with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
@@ -94,7 +95,6 @@ def main():
         }
         pickle.dump(to_save, open(fn, "wb"))
 
-    #np.savez(fn, test_losses=test_losses, metrics = metrics, isnan = isnan, tags = tags)
     return metrics
 
 if __name__ == '__main__':

@@ -95,8 +95,21 @@
 {
   "exp_name": "nodepert4_fixedw_exact",
   "num_epochs": 500,
-  "num_iter_per_epoch": 100,
+  "num_iter_per_epoch": 500,
   "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma":0.1
+},
+
+{
+  "exp_name": "nodepert4_exact",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 500,
+  "learning_rate": 0.0001,
   "lmda_learning_rate": 0.0005,
   "var_xi": 0.01,
   "batch_size": 32,
