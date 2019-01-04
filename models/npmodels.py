@@ -237,12 +237,15 @@ class NPModel4(BaseModel):
             delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
             alignment = tf.abs(tf_align(delta_fa, delta_bp))
             norm = tf.norm(Ws[idx] - Bs[idx], 2)
+            sgn_cong = tf.reduce_mean((tf.sign(Ws[idx])*tf.sign(Bs[idx])+1)/2)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
             self.training_metric_tags.append('norm_W%d_B%d'%(idx+2, idx+2))
             self.training_metrics.append(norm)
             self.training_metric_tags.append('norm_gradB%d'%(idx+2))
             self.training_metrics.append(gradBs[idx])
+            self.training_metric_tags.append('sign_cong%d'%(idx+2))
+            self.training_metrics.append(sgn_cong)
 
 class NPModel4_ExactLsq(BaseModel):
     #Four layers version
@@ -346,6 +349,7 @@ class NPModel4_ExactLsq(BaseModel):
             new_S1 = S1.assign(S1 + grad_S1)
             new_S2 = S2.assign(S2 + grad_S2)            
             self.train_step = [new_W1, new_A, new_V1, new_S1, new_W2, new_V2, new_S2]
+            self.train_step_warmup = [new_V1, new_S1, new_V2, new_S2]
 
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -367,10 +371,13 @@ class NPModel4_ExactLsq(BaseModel):
             delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
             alignment = tf.abs(tf_align(delta_fa, delta_bp))
             norm = tf.norm(Ws[idx] - Bs[idx])/tf.norm(Ws[idx])
+            sgn_cong = tf.reduce_mean((tf.sign(Ws[idx])*tf.sign(Bs[idx])+1)/2)
             self.training_metric_tags.append('align_B%d'%(idx+2))
             self.training_metrics.append(alignment)
             self.training_metric_tags.append('norm_W%d_B%d'%(idx+2, idx+2))
             self.training_metrics.append(norm)
+            self.training_metric_tags.append('sign_cong%d'%(idx+2))
+            self.training_metrics.append(sgn_cong)
 
 class DirectNPModel4(BaseModel):
     #Four layers version

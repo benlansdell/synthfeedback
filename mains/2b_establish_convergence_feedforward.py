@@ -29,7 +29,7 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert4_fixedw_exact'
+    model_name = 'nodepert4_exact'
     Model = NPModel4_ExactLsq
     Data = MNISTDataGenerator
     Trainer = SFTrainer
@@ -39,10 +39,11 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-3, 1e-2, 1e-1, 1]
-    #var_vals = [1e-1]
+    #var_vals = [1e-3, 1e-2, 1e-1, 1]
+    var_vals = [1e-3]
     N = len(var_vals)
-    M = 10
+    #M = 10
+    M = 1
     T = config.num_epochs+1
 
     n_tags = 10
@@ -62,11 +63,8 @@ def main():
         print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
         for m in range(M):
             with tf.Session(config=tfconfig) as sess:
-                #options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                #run_metadata = tf.RunMetadata()
                 logger = LoggerNumpy(sess, config, model)
                 model.load(sess)
-                #trainer = Trainer(sess, model, data, config, logger, options, run_metadata)
                 trainer = Trainer(sess, model, data, config, logger)
                 try:
                     trainer.train()
@@ -79,14 +77,8 @@ def main():
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 
-                #See here: https://towardsdatascience.com/howto-profile-tensorflow-1a49fb18073d
-                #fetched_timeline = timeline.Timeline(run_metadata.step_stats)
-                #chrome_trace = fetched_timeline.generate_chrome_trace_format()
-                #with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
-                #    f.write(chrome_trace)
-
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output.npz"
+        fn = os.path.join(config.summary_dir) + "2b_establish_convergence_feedforward_output.npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,

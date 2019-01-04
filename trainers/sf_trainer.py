@@ -58,10 +58,19 @@ class SFTrainer(BaseTrain):
             self.model.save(self.sess)
 
     def train_step(self):
+
+        curr_epoch = self.model.cur_epoch_tensor.eval(self.sess)
+        train_step = self.model.train_step
+
+        if hasattr(self.config, 'warmup_epoch'):
+            if curr_epoch < self.config.warmup_epoch:
+                #print("Running the warm up!")
+                train_step = self.model.train_step_warmup
+
         batch_x, batch_y = next(self.data.next_batch(self.config.batch_size))
         feed_dict = {self.model.x: batch_x, self.model.y: batch_y, \
                                                 self.model.is_training: True}
-        _, loss, acc = self.sess.run([self.model.train_step, self.model.loss,\
+        _, loss, acc = self.sess.run([train_step, self.model.loss,\
                                     self.model.accuracy], feed_dict=feed_dict)
 
         #Logs data for viewing in timeline in chrome. 
