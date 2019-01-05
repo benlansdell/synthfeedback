@@ -599,9 +599,6 @@ class AENPModel(BaseModel):
             grad_B5 = tf.concat([grad_B5, tf.zeros([1, 50], tf.float32)], 0)
             grad_B6 = tf.concat([grad_B6, tf.zeros([1, 784], tf.float32)], 0)
 
-            #Also need to add eigenvector stuff
-            #self.training_metrics = [alignment, norm_W, norm_B, error_FA]
-
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_W3 = W3.assign(W3 - self.config.learning_rate*grad_W3)

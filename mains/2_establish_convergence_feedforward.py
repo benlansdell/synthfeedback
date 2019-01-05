@@ -42,7 +42,7 @@ def main():
     var_vals = [1e-3, 1e-2, 1e-1, 1]
     #var_vals = [1e-1]
     N = len(var_vals)
-    M = 10
+    M = 5
     T = config.num_epochs+1
 
     n_tags = 10
