@@ -10,7 +10,7 @@ import numpy as np
 import pickle
 
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import NPModel4_ExactLsq
+from models.npmodels import NPModel4_ExactLsq_Large
 from trainers.sf_trainer import SFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -30,7 +30,7 @@ def set_hyperparameters(config, attr, vals):
 def main():
     args = get_args()
     model_name = 'nodepert4_exact'
-    Model = NPModel4_ExactLsq
+    Model = NPModel4_ExactLsq_Large
     Data = MNISTDataGenerator
     Trainer = SFTrainer
 
@@ -78,7 +78,7 @@ def main():
                 metrics[n,m,:,:] = metric
 
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "2b_establish_convergence_feedforward_output.npz"
+        fn = os.path.join(config.summary_dir) + "2b_largenet_establish_convergence_feedforward_output.npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,

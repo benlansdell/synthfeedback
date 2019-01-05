@@ -10,8 +10,8 @@ import numpy as np
 import pickle
 
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import NPModel4_ExactLsq
-from trainers.sf_trainer import SFTrainer
+from models.npmodels import AENPModel, AEDFANPModel
+from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
 from utils.utils import get_args
@@ -20,7 +20,6 @@ from utils.logger import LoggerNumpy
 import cProfile
 import re
 
-#Add tensorflow profiling
 from tensorflow.python.client import timeline
 
 def set_hyperparameters(config, attr, vals):
@@ -29,24 +28,24 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert4_exact'
-    Model = NPModel4_ExactLsq
+    model_name = 'nodepert_autoencoder_exact'
+    Model = AENPModel
     Data = MNISTDataGenerator
-    Trainer = SFTrainer
+    Trainer = AESFTrainer
 
     config = process_config('./configs/np.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-3, 1e-2, 1e-1, 1]
-    #var_vals = [1e-3]
+    #var_vals = [1e-3, 1e-2, 1e-1, 1]
+    var_vals = [1e-3]
     N = len(var_vals)
-    M = 5
-    #M = 1
+    #M = 5
+    M = 1
     T = config.num_epochs+1
 
-    n_tags = 10
+    n_tags = 4
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
@@ -78,7 +77,7 @@ def main():
                 metrics[n,m,:,:] = metric
 
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "2b_establish_convergence_feedforward_output.npz"
+        fn = os.path.join(config.summary_dir) + "3_autoencoder.npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,

@@ -251,6 +251,10 @@ class NPModel4_ExactLsq(BaseModel):
     #Four layers version
     def __init__(self, config):
         super(NPModel4_ExactLsq, self).__init__(config)
+
+        self.m = 50
+        self.j = 20
+
         self.build_model()
         #Whether to save or not....
         #self.init_saver()
@@ -264,8 +268,8 @@ class NPModel4_ExactLsq(BaseModel):
         p = self.config.state_size[0]
         #m = 512
         #j = 200
-        m = 50
-        j = 20
+        m = self.m
+        j = self.j
         n = 10
         var_xi = self.config.var_xi
         gamma = self.config.gamma
@@ -378,6 +382,16 @@ class NPModel4_ExactLsq(BaseModel):
             self.training_metrics.append(norm)
             self.training_metric_tags.append('sign_cong%d'%(idx+2))
             self.training_metrics.append(sgn_cong)
+
+class NPModel4_ExactLsq_Large(NPModel4_ExactLsq):
+    #Four layers version
+    def __init__(self, config):
+        super(NPModel4_ExactLsq, self).__init__(config)
+        self.m = 300
+        self.j = 50
+        self.build_model()
+        #Whether to save or not....
+        #self.init_saver()
 
 class DirectNPModel4(BaseModel):
     #Four layers version
@@ -499,7 +513,7 @@ class AENPModel(BaseModel):
     def __init__(self, config):
         super(AENPModel, self).__init__(config)
         self.build_model()
-        self.init_saver()
+        #self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
