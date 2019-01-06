@@ -106,7 +106,7 @@ def main():
                 print("Epoch: %d"%idx)
                 training_loss = 0
                 #training_x = np.zeros((batch_size, in_dim))
-                training_x = 2*rng.randn(batch_size, in_dim)
+                training_x = rng.randn(batch_size, in_dim)
                 #training_x[:,1] = np.pi
                 training_state = np.zeros((batch_size, state_size))
                 for step in range(num_episodes):
@@ -342,7 +342,7 @@ def main():
     mp = 0.1
     g = 9.8
     l = 0.5
-    tau = 0.02
+    tau = 0.01
     Fmax = 10
     max_h = 3
     gamma = 10
@@ -366,17 +366,23 @@ def main():
         action = tf.matmul(tf.concat([state, ones0], 1), V)
         F = tf.squeeze(Fmax*activation(action) + phi)
         #Compute new x
-        theta_dd = (m*g*tf.sin(x[:,1]) - tf.cos(x[:,1])*(F + mp*l*x[:,0]*x[:,0]*tf.sin(x[:,1])))/((4/3)*m*l -\
-                    mp*l*tf.cos(x[:,1])*tf.cos(x[:,1]))
-        h_dd = (F + mp*l*(x[:,0]*x[:,0]*tf.sin(x[:,1])-theta_dd*tf.cos(x[:,1])))/m
+        #These could be wrong....?
+        #theta_dd = (m*g*tf.sin(x[:,1]) - tf.cos(x[:,1])*(F + mp*l*x[:,0]*x[:,0]*tf.sin(x[:,1])))/((4/3)*m*l -\
+        #            mp*l*tf.cos(x[:,1])*tf.cos(x[:,1]))
+        #h_dd = (F + mp*l*(x[:,0]*x[:,0]*tf.sin(x[:,1])-theta_dd*tf.cos(x[:,1])))/m
+
+        #Try these ones... from wikipedia:
+        h_dd = (F - mp*l*x[:,0]*x[:,0]*tf.sin(x[:,1]) + mp*g*tf.sin(x[:,1])*tf.cos(x[:,1]))/(m - mp*tf.cos(x[:,1])*tf.cos(x[:,1]))
+        theta_dd = (h_dd*tf.cos(x[:,1]) + g*tf.sin(x[:,1]))/l 
+
+        h_dot = x[:,2] + tau*h_dd
+
         x_list = []
-
-        #hdot = x[:,2] + tau*h_dd
-        #hdot = hdot * ()
-
         x_list.append(x[:,0] + tau*theta_dd)   #x0 = theta_dot
         x_list.append(x[:,1] + tau*x[:,0])     #x1 = theta
-        x_list.append(tf.clip_by_value(x[:,2] + tau*h_dd, -2*max_h, 2*max_h))       #x2 = h_dot
+        #x_list.append(tf.clip_by_value(x[:,2] + tau*h_dd, -2*max_h, 2*max_h))       #x2 = h_dot
+        x_list.append(x[:,2] + tau*h_dd)       #x2 = h_dot
+        #x_list.append(h_dot*tf.sign(x[:,3] + 10*max_h)*tf.sign(10*max_h - x[:,3]))
         #x_list.append(tf.clip_by_value(x[:,3] + tau*x[:,2], -10*max_h, 10*max_h))     #x3 = h
         x_list.append(x[:,3] + tau*x[:,2])     #x3 = h
         x = tf.stack(x_list, axis = 1)
@@ -395,19 +401,19 @@ def main():
     #Define loss function....
     #loss = 
 
-    loss = [gamma*tf.pow(height+1, 2)/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
-    losses = [gamma*tf.reduce_sum(tf.pow(height+1, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
+    loss = [gamma*tf.pow(height-1, 2)/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
+    losses = [gamma*tf.reduce_sum(tf.pow(height-1, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
     total_loss = tf.reduce_mean(losses)
 
     #Perturbed outputs and loss
-    loss_pert = [gamma*tf.pow(height+1, 2)/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
-    losses_pert = [gamma*tf.reduce_sum(tf.pow(height+1, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
+    loss_pert = [gamma*tf.pow(height-1, 2)/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
+    losses_pert = [gamma*tf.reduce_sum(tf.pow(height-1, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
     total_loss_pert = tf.reduce_mean(losses_pert)
 
     #This is wrong... need to be related to how the network activations relate to the height and displacement...
     #Use autograd
     #e0s = [(height+1) for height in heights]
-    e0s = [tf.gradients(xs=action, ys=l)[0][:,0] for (action,l) in zip(actions, losses)]
+    e0s = [tf.gradients(xs=action, ys=lo)[0][:,0] for (action,lo) in zip(actions, losses)]
     delta0s = e0s
 
     ##################################################
