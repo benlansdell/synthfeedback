@@ -1082,6 +1082,82 @@ class AEBPModel(BaseModel):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
 
+class AEBPModel5(BaseModel):
+    #Auto encoder FA model
+    def __init__(self, config):
+        super(AEBPModel5, self).__init__(config)
+        self.build_model()
+        self.init_saver()
+
+    def build_model(self):
+        self.is_training = tf.placeholder(tf.bool)
+        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+
+        network_size = self.config.network_size
+        n_layers = len(network_size)
+
+        # first fully connected layer with 50 neurons using tanh activation
+        l1 = tf.nn.tanh(fc_layer(self.x, 28*28, 200))
+        # third fully connected layer with 2 neurons
+        l2 = fc_layer(l1, 200, 2)
+        # fourth fully connected layer with 50 neurons and tanh activation
+        l3 = tf.nn.tanh(fc_layer(l2, 2, 200))
+        # fifth fully connected layer with 50 neurons and tanh activation
+        y_p = tf.nn.relu(fc_layer(l3, 200, 28*28))
+        self.y_p = y_p
+
+        with tf.name_scope("loss"):
+            #mean squared error
+            self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            e = (y_p - self.y)
+            self.train_step = tf.train.GradientDescentOptimizer(self.config.learning_rate).minimize(self.loss,
+                                                                             global_step=self.global_step_tensor)
+            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    def init_saver(self):
+        # here you initialize the tensorflow saver that will be used in saving the checkpoints.
+        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
+class AEFAModel5(BaseModel):
+    #Auto encoder FA model
+    def __init__(self, config):
+        super(AEFAModel5, self).__init__(config)
+        self.build_model()
+        self.init_saver()
+
+    def build_model(self):
+        self.is_training = tf.placeholder(tf.bool)
+        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
+
+        network_size = self.config.network_size
+        n_layers = len(network_size)
+
+        # first fully connected layer with 50 neurons using tanh activation
+        l1 = tf.nn.tanh(fa_layer(self.x, 28*28, 200))
+        # third fully connected layer with 2 neurons
+        l2 = fa_layer(l1, 200, 2)
+        # fourth fully connected layer with 50 neurons and tanh activation
+        l3 = tf.nn.tanh(fa_layer(l2, 2, 200))
+        # fifth fully connected layer with 50 neurons and tanh activation
+        y_p = tf.nn.relu(fa_layer(l3, 200, 28*28))
+        self.y_p = y_p
+
+        with tf.name_scope("loss"):
+            #mean squared error
+            self.loss = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
+            e = (y_p - self.y)
+            self.train_step = tf.train.GradientDescentOptimizer(self.config.learning_rate).minimize(self.loss,
+                                                                             global_step=self.global_step_tensor)
+            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    def init_saver(self):
+        # here you initialize the tensorflow saver that will be used in saving the checkpoints.
+        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+
 class AEDFAModel(BaseModel):
     #Auto encoder FA model
     def __init__(self, config):

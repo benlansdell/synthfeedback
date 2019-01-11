@@ -2,8 +2,6 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-#python -m cProfile -o 2_profile.txt ./mains/2_establish_convergence_feedforward.py
-
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
@@ -16,16 +14,6 @@ from utils.config import process_config
 from utils.dirs import create_dirs
 from utils.utils import get_args
 from utils.logger import LoggerNumpy
-
-import cProfile
-import re
-
-#Add tensorflow profiling
-from tensorflow.python.client import timeline
-
-def set_hyperparameters(config, attr, vals):
-    for idx, val in enumerate(vals):
-        setattr(config, attr[idx], val)
 
 def main():
     args = get_args()
@@ -46,14 +34,11 @@ def main():
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
 
-    tfconfig = tf.ConfigProto()
-    tfconfig.gpu_options.allow_growth = True
-
     n = 0
     model = Model(config)
     data = Data(config)
     for m in range(M):
-        with tf.Session(config=tfconfig) as sess:
+        with tf.Session() as sess:
             logger = LoggerNumpy(sess, config, model)
             model.load(sess)
             trainer = Trainer(sess, model, data, config, logger)

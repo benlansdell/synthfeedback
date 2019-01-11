@@ -69,6 +69,28 @@
 },
 
 {
+  "exp_name": "backprop_ae5",
+  "num_epochs": 200,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784]
+},
+
+{
+  "exp_name": "feedbackalignment_ae5",
+  "num_epochs": 200,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784]
+},
+
+{
   "exp_name": "feedbackalignment4linear",
   "num_epochs": 1000,
   "num_iter_per_epoch": 100,
@@ -115,7 +137,7 @@
   "learning_rate": 0.0001,
   "batch_size": 32,
   "state_size": [784],
-  "network_size": [500, 2, 500, 784],
+  "network_size": [200, 2, 200, 784],
   "max_to_keep":5
 },
 
