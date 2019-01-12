@@ -8,35 +8,24 @@ class LoggerNumpy:
     def __init__(self, sess, config, model):
         self.sess = sess
         self.config = config
+
         with tf.variable_scope("loss"):
             nrows = config.num_epochs+1
-            ncols = len(model.training_metric_tags)+4
+            ncols = len(model.training_metrics)+2
             self.data = np.zeros((nrows, ncols))
-        self.tags = None
 
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
         if summaries_dict is not None:
             with tf.variable_scope("loss"):
-                summ = []
-                for key in summaries_dict.keys():
-                    summ.append(summaries_dict[key])
-                self.data[step,:] = summ
-                self.tags = [s for s in summaries_dict.keys()]
-                #if 'metrics' in summaries_dict.keys():
-                #    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']] + summaries_dict['metrics']
-                #else:
-                #    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']]
+                if 'metrics' in summaries_dict.keys():
+                    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']] + summaries_dict['metrics']
+                else:
+                    self.data[step,:] = [summaries_dict['loss'], summaries_dict['acc']]
 
     def save(self):
         #Save self.data
         fn = os.path.join(self.config.summary_dir) + "train.npy"
         np.save(fn, self.data)
-
-    def get_data(self):
-        return self.data
-
-    def get_tags(self):
-        return self.tags
 
 class Logger:
     def __init__(self, sess,config):

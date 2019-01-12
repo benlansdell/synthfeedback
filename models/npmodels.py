@@ -753,6 +753,5 @@ class AEDFANPModel(BaseModel):
         #eigs2 = tf_eigvals(tf.matmul(tf.transpose(B2), W2))
 
     def init_saver(self):
-        
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
-        self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
+self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
