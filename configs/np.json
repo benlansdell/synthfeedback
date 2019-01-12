@@ -102,6 +102,7 @@
   "batch_size": 32,
   "state_size": [784],
   "max_to_keep":5,
-  "gamma":0.1
+  "gamma":0.1,
+  "neurons":100
 }
 ]

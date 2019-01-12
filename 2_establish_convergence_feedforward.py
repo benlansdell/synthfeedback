@@ -37,9 +37,9 @@ def main():
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     #Param search parameters
-    attr = ['var_xi']
+    attr = ['neurons']
     #var_vals = [1e-3, 1e-2, 1e-1, 1, 10]
-    var_vals = [1e-1]
+    var_vals = [500,1000,1500,2000]
     N = len(var_vals)
     M = 3
     T = config.num_epochs+1
@@ -75,6 +75,7 @@ def main():
                 loss, acc = trainer.test()
                 metric = logger.get_data()
                 tags = logger.get_tags()
+                print("tags are here",tags)
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 
@@ -84,7 +85,6 @@ def main():
                 #    f.write(chrome_trace)
 
         #Save after each run
-        print(os.path.join(config.summary_dir))
         fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output.npz"
         to_save = {
             'test_losses': test_losses,

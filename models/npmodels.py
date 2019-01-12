@@ -249,7 +249,7 @@ class NPModel4_ExactLsq(BaseModel):
     def __init__(self, config):
         super(NPModel4_ExactLsq, self).__init__(config)
         self.build_model()
-        self.init_saver()
+        #self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
@@ -261,7 +261,7 @@ class NPModel4_ExactLsq(BaseModel):
         #m = 512
         #j = 200
         m = 50
-        j = 20
+        j = int(self.config.neurons)
         n = 10
         var_xi = self.config.var_xi
         gamma = self.config.gamma
