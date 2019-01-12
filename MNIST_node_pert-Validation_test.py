@@ -4,6 +4,10 @@
 # In[1]:
 
 import os
+<<<<<<< HEAD
+=======
+
+>>>>>>> a71bcd05f19e1c953cb24ed173f2f6a46388342d
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
 import tensorflow as tf
 config = tf.ConfigProto()
@@ -157,8 +161,13 @@ with tf.Session(config=config) as sess:
 
 
 # In[ ]:
+<<<<<<< HEAD
 with open('/home/prashanth/synthfeedback/Pickles/MNIST_validation_test.pkl','wb') as f:
     pickle.dump([store_al,store_acc,store_df,store_err,combo,eta_1,eta_lmda,non_converge,iteration],f)
+=======
+with open('/home/prashanth/synthfeedback/Pickles/Analysis_MNIST.pkl','wb') as f:
+    pickle.dump([store_al,store_df,store_err,combo,eta_1,eta_lmda,non_converge,iteration],f)
+>>>>>>> a71bcd05f19e1c953cb24ed173f2f6a46388342d
 '''
 from pylab import *
 plt.figure(figsize=(30,30))

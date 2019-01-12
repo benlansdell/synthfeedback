@@ -9,6 +9,11 @@ config.gpu_options.allow_growth = True
 import numpy as np
 import numpy.random as rng
 from data_loader.data_generator import MNISTDataGenerator, LinearDataGenerator
+<<<<<<< HEAD
+=======
+import numpy as np
+import random
+>>>>>>> a71bcd05f19e1c953cb24ed173f2f6a46388342d
 import pickle
 from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
 from tensorflow.examples.tutorials.mnist import input_data
@@ -17,7 +22,7 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 batch_size=50
 p=784# inshape 
 m =1000# hiddenshap
-j = 10#outshpae
+j = 10#outshape
 #n = 10
 var_xi = 1#between 0.001 and 10
 # learning_rate=0
@@ -96,15 +101,24 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 
 init = tf.global_variables_initializer()
+<<<<<<< HEAD
 iteration= 10000
 epoch=1
+=======
+iteration= 100000
+epoch=10
+>>>>>>> a71bcd05f19e1c953cb24ed173f2f6a46388342d
 store_al=np.zeros((epoch,iteration))
 store_df=np.zeros((epoch,iteration))
 store_err=np.zeros((epoch,iteration))
 store_acc=np.zeros((epoch,iteration))
 # store_out=np.zeros((N, 4))
 # x_in=[[0,0],[0,1],[1,0],[1,1]]
+<<<<<<< HEAD
 
+=======
+batch_size=50
+>>>>>>> a71bcd05f19e1c953cb24ed173f2f6a46388342d
 with tf.Session(config=config) as sess:
 
     sess.run(init)
