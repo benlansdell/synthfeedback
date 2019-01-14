@@ -33,6 +33,18 @@
 },
 
 {
+  "exp_name": "nodepert_ae5",
+  "num_epochs": 200,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1
+},
+
+{
   "exp_name": "directnodepert4",
   "num_epochs": 100,
   "num_iter_per_epoch": 1000,
