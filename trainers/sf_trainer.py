@@ -119,8 +119,8 @@ class AESFTrainer(SFTrainer):
         summaries_dict = {
             'loss': loss,
             'acc': acc,
-            'input': ae_input,
-            'output': ae_output,
+            #'input': ae_input,
+            #'output': ae_output,
             'loss_test': loss_test,
             'acc_test': acc_test
         }

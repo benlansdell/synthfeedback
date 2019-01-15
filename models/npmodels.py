@@ -537,6 +537,9 @@ class AENPModel5_ExactLsq(BaseModel):
         n = self.n                    # 200
         o = self.config.state_size[0] # 784
 
+        #activation = tf.sigmoid
+        activation = tf.nn.tanh
+
         var_xi = self.config.var_xi
         gamma = self.config.gamma
 
@@ -569,32 +572,35 @@ class AENPModel5_ExactLsq(BaseModel):
         e0 = tf.ones([self.config.batch_size, 1], tf.float32)
         e1 = tf.ones([self.config.batch_size, 1], tf.float32)
         x_aug = tf.concat([self.x, e0], 1)
-        h1 = tf.sigmoid(tf.matmul(x_aug, A))
+        h1 = activation(tf.matmul(x_aug, A))
         h1_aug = tf.concat([h1, e1], 1)
         xi1 = tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
         h1_tilde = h1_aug + xi1
         # Non linear middle layer
-        #h2 = tf.sigmoid(tf.matmul(h1_tilde, W1))
+        #h2 = activation(tf.matmul(h1_tilde, W1))
         # Linear middle layer
         h2 = tf.matmul(h1_tilde, W1)
         h2_aug = tf.concat([h2, e1], 1)
         xi2 = tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
         h2_tilde = h2_aug + xi2
-        h3 = tf.sigmoid(tf.matmul(h2_tilde, W2))
+        h3 = activation(tf.matmul(h2_tilde, W2))
         h3_aug = tf.concat([h3, e1], 1)
         xi3 = tf.random_normal(shape=tf.shape(h3_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
         h3_tilde = h3_aug + xi3
-        y_p = tf.matmul(h3_tilde, W3)
+        #y_p = tf.matmul(h3_tilde, W3)
+        y_p = tf.nn.relu(tf.matmul(h3_tilde, W3))
 
         #Compute unperturbed output
         #Non linear middle layer
-        #h2_0 = tf.sigmoid(tf.matmul(h1_aug, W1))
+        #h2_0 = activation(tf.matmul(h1_aug, W1))
         #Linear middle layer
         h2_0 = tf.matmul(h1_aug, W1)
         h2_0_aug = tf.concat([h2_0, e1], 1)
-        h3_0 = tf.sigmoid(tf.matmul(h2_0_aug, W2))
+        h3_0 = activation(tf.matmul(h2_0_aug, W2))
         h3_0_aug = tf.concat([h3_0, e1], 1)
-        y_p_0 = tf.matmul(h3_0_aug, W3)
+        #y_p_0 = tf.matmul(h3_0_aug, W3)
+        y_p_0 = tf.nn.relu(tf.matmul(h3_0_aug, W3))
+        self.y_p = y_p_0
 
         self.trainable = [A, W1, W2, W3, V1, V2, V3, S1, S2, S3]
 
@@ -602,23 +608,38 @@ class AENPModel5_ExactLsq(BaseModel):
             #mean squared error
             self.loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             self.loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2))/2
-            e = (y_p_0 - self.y)
-            h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
-            h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
-            h3_prime_0 = tf.multiply(h3_0_aug, 1-h3_0_aug)[:,0:n]
+
+            #primes for sigmoid non-linearity
+            #h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
+            #h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
+            #h2_prime_0 = 1.0
+            #h3_prime_0 = tf.multiply(h3_0_aug, 1-h3_0_aug)[:,0:n]
+            #y_p_prime_0 = tf.maximum(0.0, tf.sign(y_p_0))
+
+            #primes for tanh nonlinearity
+            h1_prime_0 = 1.0 - tf.multiply(h1_aug, h1_aug)[:,0:m]
+            #h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
+            h2_prime_0 = 1.0
+            h3_prime_0 = 1.0 - tf.multiply(h3_0_aug, h3_0_aug)[:,0:n]
+            y_p_prime_0 = tf.maximum(0.0, tf.sign(y_p_0))
+
+            e = tf.multiply((y_p_0 - self.y), y_p_prime_0)
+
+            lmda3 = tf.matmul(e, tf.transpose(B3[0:n,:]))
+            d3 = tf.multiply(h3_prime_0, lmda3)
+            grad_W2 = tf.matmul(tf.transpose(h2_0_aug), d3)
+            lmda2 = tf.matmul(d3, tf.transpose(B2[0:j,:]))
+            d2 = tf.multiply(h2_prime_0, lmda2)
+            grad_W1 = tf.matmul(tf.transpose(h1_aug), d2)
+            lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
+            d1 = tf.multiply(h1_prime_0, lmda1)
+            grad_A = tf.matmul(tf.transpose(x_aug), d1)
 
             #Compute updates for W and A (based on B)
             grad_W3 = tf.gradients(xs=W3, ys=self.loss)[0]
-
-            lmda3 = tf.matmul(e, tf.transpose(B3[0:n,:]))
-            d3 = np.multiply(h3_prime_0, lmda3)
-            grad_W2 = tf.matmul(tf.transpose(h2_aug), d3)
-            lmda2 = tf.matmul(d3, tf.transpose(B2[0:j,:]))
-            d2 = np.multiply(h2_prime_0, lmda2)
-            grad_W1 = tf.matmul(tf.transpose(h1_aug), d2)
-            lmda1 = tf.matmul(d2, tf.transpose(B1[0:m,:]))
-            d1 = np.multiply(h1_prime_0, lmda1)
-            grad_A = tf.matmul(tf.transpose(x_aug), d1)
+            #grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
+            #grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
+            #grad_A = tf.gradients(xs=A, ys=self.loss)[0]
 
             np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
             np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
@@ -644,7 +665,11 @@ class AENPModel5_ExactLsq(BaseModel):
             new_S1 = S1.assign(S1 + grad_S1)
             new_S2 = S2.assign(S2 + grad_S2)            
             new_S3 = S3.assign(S3 + grad_S3)            
-            self.train_step = [new_W1, new_A, new_V1, new_S1, new_W2, new_V2, new_S2, new_V3, new_S3]
+
+            #NP
+            self.train_step = [new_W1, new_A, new_V1, new_S1, new_W2, new_W3, new_V2, new_S2, new_V3, new_S3]
+            #FA
+            #self.train_step = [new_W1, new_A, new_W2, new_W3]
             self.train_step_warmup = [new_V1, new_S1, new_V2, new_S2, new_V3, new_S3]
 
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))

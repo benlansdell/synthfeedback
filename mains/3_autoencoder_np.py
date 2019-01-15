@@ -36,14 +36,14 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    #var_vals = [1e-3, 1e-2, 1e-1, 1]
-    var_vals = [1e-3]
+    var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
+    #var_vals = [1e-2]
     N = len(var_vals)
     #M = 5
     M = 1
     T = config.num_epochs+1
 
-    n_tags = 4
+    n_tags = 13
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
@@ -61,26 +61,26 @@ def main():
                 #logger = Logger(sess, config)
                 model.load(sess)
                 trainer = Trainer(sess, model, data, config, logger)
-                #try:
-                trainer.train()
-                #except ValueError:
-                #    print("Method fails to converge for these parameters")
-                #    isnan[n,m] = 1
+                try:
+                    trainer.train()
+                except ValueError:
+                    print("Method fails to converge for these parameters")
+                    isnan[n,m] = 1
                 loss, acc = trainer.test()
-                #metric = logger.get_data()
-                #tags = logger.get_tags()
-                #test_losses[n,m] = loss
-                #metrics[n,m,:,:] = metric
+                metric = logger.get_data()
+                tags = logger.get_tags()
+                test_losses[n,m] = loss
+                metrics[n,m,:,:] = metric
 
         #Save after each run
-        #fn = os.path.join(config.summary_dir) + "3_autoencoder.npz"
-        #to_save = {
-        #    'test_losses': test_losses,
-        #    'metrics': metrics,
-        #    'isnan': isnan,
-        #    'tags': tags
-        #}
-        #pickle.dump(to_save, open(fn, "wb"))
+        fn = os.path.join(config.summary_dir) + "3_autoencoder.npz"
+        to_save = {
+            'test_losses': test_losses,
+            'metrics': metrics,
+            'isnan': isnan,
+            'tags': tags
+        }
+        pickle.dump(to_save, open(fn, "wb"))
 
     return metrics
 
