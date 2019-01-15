@@ -45,7 +45,7 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
+    var_vals = [1e-2, 1e-1, 3e-1, 1]
     #var_vals = [1e-2]
     N = len(var_vals)
     #M = 5

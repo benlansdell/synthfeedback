@@ -27,16 +27,16 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5'
+    #model_name = 'nodepert_ae5'
     #model_name = 'nodepert_ae5_bpauto'
     #model_name = 'nodepert_ae5_bpself'
     #model_name = 'nodepert_ae5_faauto'
-    #model_name = 'nodepert_ae5_faself'
-    Model = AENPModel5_ExactLsq
+    model_name = 'nodepert_ae5_faself'
+    #Model = AENPModel5_ExactLsq
     #Model = AENPModel5_ExactLsq_BPAuto
     #Model = AENPModel5_ExactLsq_BPSelf
     #Model = AENPModel5_ExactLsq_FAAuto
-    #Model = AENPModel5_ExactLsq_FASelf
+    Model = AENPModel5_ExactLsq_FASelf
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
@@ -45,11 +45,11 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
-    #var_vals = [1e-2]
+    #var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
+    var_vals = [1e-2]
     N = len(var_vals)
     #M = 5
-    M = 1
+    M = 3
     T = config.num_epochs+1
 
     n_tags = 13

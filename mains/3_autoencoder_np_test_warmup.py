@@ -27,7 +27,8 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5'
+    #model_name = 'nodepert_ae5'
+    model_name = 'nodepert_ae5_warmup'
     #model_name = 'nodepert_ae5_bpauto'
     #model_name = 'nodepert_ae5_bpself'
     #model_name = 'nodepert_ae5_faauto'
@@ -45,7 +46,7 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
+    var_vals = [1e-2, 1e-1, 3e-1, 1]
     #var_vals = [1e-2]
     N = len(var_vals)
     #M = 5
