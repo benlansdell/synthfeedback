@@ -1,6 +1,7 @@
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]='0'
+
 import numpy as np
 import numpy.random as rand
 from numpy import random as rng
@@ -28,12 +29,8 @@ def main():
     method = args.method
     save = bool(args.save)
 
-    #method = 'backprop'
-    #save = True
-
-    anneal = True
-
     # Global config variables
+    anneal = True
     num_steps = 10 # number of truncated backprop steps ('n' in the discussion above)
     batch_size = 20
     in_dim = 4
@@ -42,18 +39,15 @@ def main():
     alpha2 = 1
     activation = tf.tanh
     act_prime = lambda x: 1.0 - tf.multiply(x,x)
+    acclimatize = True
+    grad_max = 10
+    N_epochs = 5000
+    N_episodes = 10
 
     #Node pert params
     lmbda = 5e-5
-    var_xi = 0.5
-    p_fire = 0.1 #prob of firing
-
-    acclimatize = True
-
-    grad_max = 10
-
-    N_epochs = 5000
-    N_episodes = 10
+    var_xi = 1e-4
+    p_fire = 1.0 #prob of firing
 
     beta = 0.1
 
@@ -76,11 +70,6 @@ def main():
     'N_episodes': N_episodes,
     'acclimatize':acclimatize
     }
-
-    #method = 'backprop'
-    #method = 'feedbackalignment'
-    #method = 'nodepert'
-    #method = 'weightsym'
 
     print("Using %s"%method)
     print("For %d epochs"%N_epochs)
@@ -114,14 +103,12 @@ def main():
 
             for idx in range(N_epochs):
                 print("Epoch: %d"%idx)
-                #if idx < 4 and acclimatize:
-                #    ts = train_step_B
-                #else:
-                ts = train_step
+                if idx < 4 and acclimatize:
+                    ts = train_step_B
+                else:
+                    ts = train_step
                 training_loss = 0
                 training_x = np.zeros((batch_size, in_dim))
-                #training_x = 2*rng.randn(batch_size, in_dim)
-                #training_x[:,1] = np.pi
                 training_state = np.zeros((batch_size, state_size))
                 for step in range(num_episodes):
                     tr_init_gradW = np.zeros((state_size+1, state_size))
@@ -133,16 +120,15 @@ def main():
                                       feed_dict={init_state:training_state, init_x: training_x, \
                                       init_gradU: tr_init_gradU, init_gradW: tr_init_gradW, \
                                       init_gradB: tr_init_gradB, init_gradC: tr_init_gradC})
-                    #print(np.array(x_o).shape)
                     xs[idx, step, :, :, :] = np.array(x_o)[:,:,:]
                     training_loss += training_loss_
-                    if step % report_rate == 0 and step > 0:
-                        if verbose:
-                            print("Average loss at step %d for last %d steps: %f"%(step, report_rate, \
-                                                                                   training_loss/report_rate))
-                        training_losses.append(training_loss/report_rate)
-                        alignments.append(align)
-                        training_loss = 0
+                if idx % report_rate == 0 and idx > 0:
+                    if verbose:
+                        print("Average loss at epoch %d for last %d steps: %f"%(idx, report_rate, \
+                                                                               training_loss/report_rate/num_episodes))
+                    training_losses.append(training_loss/report_rate/num_episodes)
+                    alignments.append(align)
+                    training_loss = 0
 
         return training_losses, step, alignments, xs
 
@@ -150,11 +136,7 @@ def main():
     ## BACKPROP ##
     ##############
 
-    #Should use autograd as much as possible...
     def backprop():
-
-        grad_U = init_gradU
-        grad_W = init_gradW
         grad_B = init_gradB
         grad_C = init_gradC
         grad_V1 = init_gradV1
@@ -162,21 +144,9 @@ def main():
         grad_V2 = init_gradV2
         grad_S2 = init_gradS2
         alnments = []
-    #     for i in range(num_steps):
-    #         for j in range(i+1)[::-1]:
-    #             if j == i:
-    #                 delta = tf.multiply(tf.matmul(delta0s[i][:,None],tf.transpose(V[0:state_size,:])), \
-    #                                     act_prime(rnn_outputs[j]))
-    #             else:
-    #                 delta = tf.multiply(tf.matmul(delta, tf.transpose(W[0:state_size,:])), act_prime(rnn_outputs[j]))
-    #             grad_U = grad_U + tf.matmul(tf.transpose(rnn_inputs[j]), delta)
-    #             if j > 0:
-    #                 grad_W = grad_W + tf.matmul(tf.transpose(tf.concat([rnn_outputs[j-1], ones0],1)), delta)
-
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
         grad_W = tf.gradients(xs=W, ys=total_loss)[0]
         grad_U = tf.gradients(xs=U, ys=total_loss)[0]
-
         return grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, alnments
 
     ###############
@@ -184,9 +154,6 @@ def main():
     ###############
 
     def nodepert():
-
-        grad_U = init_gradU
-        grad_W = init_gradW
         grad_B = init_gradB
         grad_C = init_gradC
         grad_V1 = init_gradV1
@@ -198,13 +165,11 @@ def main():
             for j in range(i+1)[::-1]:
                 np_est = tf.transpose(tf.matmul(tf.diag(loss_pert[i] - loss[i])/var_xi/var_xi, noise_outputs[j]))
                 delta = tf.gradients(xs = rnn_outputs[i], ys = loss[i])[0]
-                grad_V1 += tf.matmul(tf.transpose(delta), delta)
-                grad_S1 += tf.matmul(np_est, delta)
-
+                #grad_V1 += tf.matmul(tf.transpose(delta), delta)
+                #grad_S1 += tf.matmul(np_est, delta)
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
         grad_W = tf.gradients(xs=W, ys=total_loss)[0]
         grad_U = tf.gradients(xs=U, ys=total_loss)[0]
-        
         return grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, alnments
 
     if method == 'backprop':
@@ -223,9 +188,9 @@ def main():
     init_gradC = tf.zeros([state_size+1, 1], dtype=np.float32)
     init_gradU = tf.zeros([in_dim/2, state_size], dtype=np.float32)
     init_gradV1 = tf.zeros([state_size, state_size], dtype=np.float32)
-    init_gradS1 = tf.zeros([state_size, state_size], dtype=np.float32)
-    init_gradV2 = tf.zeros([state_size, 1], dtype=np.float32)
-    init_gradS2 = tf.zeros([state_size, 1], dtype=np.float32)
+    init_gradS1 = tf.zeros([state_size+1, state_size], dtype=np.float32)
+    init_gradV2 = tf.zeros([1, 1], dtype=np.float32)
+    init_gradS2 = tf.zeros([state_size+1, 1], dtype=np.float32)
     alignment = tf.zeros([in_dim/2, state_size], dtype=np.float32)
 
     ones0 = tf.ones([batch_size, 1], tf.float32)
@@ -234,9 +199,9 @@ def main():
     V = tf.Variable(rng.randn(state_size+1, 1)*alpha2, name="output_weights", dtype=tf.float32)
 
     V1 = tf.Variable(beta*np.eye(state_size), dtype=tf.float32)
-    S1 = tf.Variable(np.zeros((state_size, state_size)), dtype=tf.float32)
+    S1 = tf.Variable(np.zeros((state_size+1, state_size)), dtype=tf.float32)
     V2 = tf.Variable(beta*np.eye(1), dtype=tf.float32)
-    S2 = tf.Variable(np.zeros((state_size, 1)), dtype=tf.float32)
+    S2 = tf.Variable(np.zeros((state_size+1, 1)), dtype=tf.float32)
 
     if method == 'nodepert':
         print("Using node pert B def")
@@ -261,7 +226,6 @@ def main():
     hs = []
     actions = []
 
-    #Cart pole dynamics simulated for num_steps 
     m = 1.1
     mp = 0.1
     g = 9.8
@@ -280,12 +244,12 @@ def main():
     #h += tau*h_d
 
     for idx in range(num_steps):
-        mask = tf.random_uniform([batch_size, state_size]) < p_fire
-        xi = tf.multiply(tf.random_normal([batch_size, state_size])*var_xi, tf.to_float(mask))
-        phi = tf.random_normal((batch_size,1))*Fmax/5
+        mask = tf.random_uniform([batch_size, state_size+1]) < p_fire
+        xi = tf.multiply(tf.random_normal([batch_size, state_size+1])*var_xi, tf.to_float(mask))
+        phi = tf.random_normal((batch_size,1))*Fmax/500
         #Compute new state
         state = rnn_cell(x, state, W, U, B)
-        state_p = rnn_cell(x, state_p, W, U, B) + xi
+        state_p = rnn_cell(x, state_p, W, U, B) + xi[:,0:state_size]
         #Compute action
         if method == 'backprop':
             action = tf.matmul(tf.concat([state, ones0], 1), V)
@@ -321,8 +285,6 @@ def main():
     final_state = rnn_outputs[-1]
 
     #Define loss function....
-    #loss = 
-
     loss = [gamma*tf.pow(height, 2)/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
     losses = [gamma*tf.reduce_sum(tf.pow(height, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
     total_loss = tf.reduce_mean(losses)
@@ -332,16 +294,9 @@ def main():
     losses_pert = [gamma*tf.reduce_sum(tf.pow(height, 2))/2 + tf.pow(tf.maximum(0.0, tf.abs(h) - max_h),2)/2 for h, height in zip(hs, heights)]
     total_loss_pert = tf.reduce_mean(losses_pert)
 
-    #e0s = [(height+1) for height in heights]
-    #delta0s = e0s
-
-    e0s = [tf.gradients(xs=action, ys=lo)[0][:,0] for (action,lo) in zip(actions, losses)]
-    delta0s = e0s
-
     ##################################################
 
     grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, aments = trainer()
-
     new_U = U.assign(U - learning_rate*grad_U)            
     new_W = W.assign(W - learning_rate*grad_W)           
     new_V = V.assign(V - learning_rate*grad_V)          
@@ -362,7 +317,6 @@ def main():
     #Save training losses, params, number of runs in epoch, alignment to BP
     all_losses = []
     all_alignments = []
-
     training_losses, n_in_epoch, alignments, xs = train_network(N_episodes, num_steps)
     all_losses.append(training_losses)
     all_alignments.append(alignments)
