@@ -26,7 +26,7 @@ def main():
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     N = 1
-    M = 1
+    M = 5
     T = config.num_epochs+1
 
     n_tags = 4

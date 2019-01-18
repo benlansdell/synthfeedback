@@ -9,7 +9,7 @@ import pickle
 
 from data_loader.data_generator import MNISTDataGenerator
 from models.npmodels import AENPModel5_ExactLsq, AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_BPSelf, \
-                                AENPModel5_ExactLsq_FAAuto, AENPModel5_ExactLsq_FASelf
+                                AENPModel5_ExactLsq_FAAuto, AENPModel5_ExactLsq_FASelf, AENPModel5
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -27,12 +27,13 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5'
+    model_name = 'nodepert_ae5_sgd'
     #model_name = 'nodepert_ae5_bpauto'
     #model_name = 'nodepert_ae5_bpself'
     #model_name = 'nodepert_ae5_faauto'
     #model_name = 'nodepert_ae5_faself'
-    Model = AENPModel5_ExactLsq
+    Model = AENPModel5
+    #Model = AENPModel5_ExactLsq
     #Model = AENPModel5_ExactLsq_BPAuto
     #Model = AENPModel5_ExactLsq_BPSelf
     #Model = AENPModel5_ExactLsq_FAAuto
