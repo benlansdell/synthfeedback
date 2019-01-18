@@ -56,7 +56,8 @@ def matmul_l_grad(op, grad):
 	#grad_x = tf.matmul(tf.transpose(A_f), grad)
 	#Feedback
 	grad_x = tf.matmul(tf.transpose(A_b), grad)
-	grad_Ab = None	
+	grad_Ab = tf.zeros((tf.shape(grad)[0], tf.shape(x)[0]))
+	#grad_Ab = tf.matmul(grad, tf.transpose(x))
 	return [grad_A, grad_x, grad_Ab]
 		
 def tf_matmul_l(A_f,x,A_b, name=None):
