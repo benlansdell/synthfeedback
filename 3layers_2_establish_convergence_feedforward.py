@@ -10,7 +10,7 @@ import numpy as np
 import pickle
 
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import NPModel4_ExactLsq
+from models.npmodels import NPModel3_ExactLsq
 from trainers.sf_trainer import SFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -28,8 +28,8 @@ def set_hyperparameters(config, attr, vals):
         setattr(config, attr[idx], val)
 def main():
     args = get_args()
-    model_name = 'nodepert4_fixedw_exact'
-    Model = NPModel4_ExactLsq
+    model_name = 'nodepert3_fixedw_exact'
+    Model = NPModel3_ExactLsq
     Data = MNISTDataGenerator
     Trainer = SFTrainer
 
@@ -39,12 +39,12 @@ def main():
     #Param search parameters
     attr = ['neurons']
     #var_vals = [1e-3, 1e-2, 1e-1, 1, 10]
-    var_vals = [500,1000,1500,2000]
+    var_vals = [30,100,300,1000]
     N = len(var_vals)
     M = 3
     T = config.num_epochs+1
 
-    n_tags = 8
+    n_tags = 6
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
@@ -75,7 +75,8 @@ def main():
                 loss, acc = trainer.test()
                 metric = logger.get_data()
                 tags = logger.get_tags()
-                print("tags are here",tags)
+                print("tags are here:",tags)
+                print("metric",metric.shape)
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 
@@ -85,7 +86,7 @@ def main():
                 #    f.write(chrome_trace)
 
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output.npz"
+        fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output_3layer.npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,
