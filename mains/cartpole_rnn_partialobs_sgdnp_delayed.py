@@ -1,5 +1,6 @@
+
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]=''
 
 import numpy as np
 import numpy.random as rand
@@ -40,18 +41,20 @@ def main():
     act_prime = lambda x: 1.0 - tf.multiply(x,x)
     acclimatize = True
     grad_max = 10
-    N_epochs = 5000
+    N_epochs = 10000
     N_episodes = 10
+    n_runs = 1
+    delay = 2
 
     #Node pert params
-    lmbda = 5e-5
+    lmbda = 5e-3
     var_xi = 0.01
     p_fire = 1.0 #prob of firing
 
     beta = 0.1
 
     report_rate = 100
-    fn_out = './experiments/cartpole_rnn_partialobs/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
+    fn_out = './experiments/cartpole_rnn_partialobs_sgdnp_delayed/%s_learning_rate_%f_lmbda_%f_varxi_%f_multipleruns.npz'%(method, learning_rate, lmbda, var_xi)
 
     #Things to save with output
     params = {
@@ -93,41 +96,42 @@ def main():
     else:
         rnn_cell = rnn_cell_fa
 
-    def train_network(num_episodes, num_steps, state_size=state_size, verbose=True):
-        xs = np.zeros((N_epochs, num_episodes, num_steps, batch_size, in_dim))
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            training_losses = []
-            alignments = []
+    def train_network(num_episodes, num_steps, state_size=state_size, verbose=True, n_runs = 5):
+        xs = np.zeros((n_runs, N_epochs, num_episodes, num_steps, batch_size, in_dim))
+        for run_idx in range(n_runs):
+            with tf.Session() as sess:
+                sess.run(tf.global_variables_initializer())
+                training_losses = []
+                alignments = []
 
-            for idx in range(N_epochs):
-                print("Epoch: %d"%idx)
-                if idx < 4 and acclimatize:
-                    ts = train_step_B
-                else:
-                    ts = train_step
-                training_loss = 0
-                training_x = np.zeros((batch_size, in_dim))
-                training_state = np.zeros((batch_size, state_size))
-                for step in range(num_episodes):
-                    tr_init_gradW = np.zeros((state_size+1, state_size))
-                    tr_init_gradB = np.zeros((state_size+1, state_size))
-                    tr_init_gradC = np.zeros((state_size+1, 1))
-                    tr_init_gradU = np.zeros((int(in_dim/2), state_size))
-                    tr_loss, tr_losses, training_loss_, training_state, training_x, _, align, x_o = \
-                        sess.run([loss, losses, total_loss, final_state, final_x, ts, aments, rnn_inputs], \
-                                      feed_dict={init_state:training_state, init_x: training_x, \
-                                      init_gradU: tr_init_gradU, init_gradW: tr_init_gradW, \
-                                      init_gradB: tr_init_gradB, init_gradC: tr_init_gradC})
-                    xs[idx, step, :, :, :] = np.array(x_o)[:,:,:]
-                    training_loss += training_loss_
-                if idx % report_rate == 0 and idx > 0:
-                    if verbose:
-                        print("Average loss at epoch %d for last %d steps: %f"%(idx, report_rate, \
-                                                                               training_loss/report_rate/num_episodes))
-                    training_losses.append(training_loss/report_rate/num_episodes)
-                    alignments.append(align)
+                for idx in range(N_epochs):
+                    print("Epoch: %d"%idx)
+                    if idx < 4 and acclimatize:
+                        ts = train_step_B
+                    else:
+                        ts = train_step
                     training_loss = 0
+                    training_x = np.zeros((batch_size, in_dim))
+                    training_state = np.zeros((batch_size, state_size))
+                    for step in range(num_episodes):
+                        tr_init_gradW = np.zeros((state_size+1, state_size))
+                        tr_init_gradB = np.zeros((state_size+1, state_size))
+                        tr_init_gradC = np.zeros((state_size+1, 1))
+                        tr_init_gradU = np.zeros((int(in_dim/2), state_size))
+                        tr_loss, tr_losses, training_loss_, training_state, training_x, _, align, x_o = \
+                            sess.run([loss, losses, total_loss, final_state, final_x, ts, aments, rnn_inputs], \
+                                          feed_dict={init_state:training_state, init_x: training_x, \
+                                          init_gradU: tr_init_gradU, init_gradW: tr_init_gradW, \
+                                          init_gradB: tr_init_gradB, init_gradC: tr_init_gradC})
+                        xs[run_idx, idx, step, :, :, :] = np.array(x_o)[:,:,:]
+                        training_loss += training_loss_
+                    if idx % report_rate == 0 and idx > 0:
+                        if verbose:
+                            print("Average loss at epoch %d for last %d steps: %f"%(idx, report_rate, \
+                                                                                   training_loss/report_rate/num_episodes))
+                        training_losses.append(training_loss/report_rate/num_episodes)
+                        alignments.append(align)
+                        training_loss = 0
 
         return training_losses, step, alignments, xs
 
@@ -138,15 +142,11 @@ def main():
     def backprop():
         grad_B = init_gradB
         grad_C = init_gradC
-        grad_V1 = init_gradV1
-        grad_S1 = init_gradS1
-        grad_V2 = init_gradV2
-        grad_S2 = init_gradS2
         alnments = []
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
         grad_W = tf.gradients(xs=W, ys=total_loss)[0]
         grad_U = tf.gradients(xs=U, ys=total_loss)[0]
-        return grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, alnments
+        return grad_U, grad_W, grad_B, grad_C, grad_V, alnments
 
     ###############
     ## NODE PERT ##
@@ -155,21 +155,21 @@ def main():
     def nodepert():
         grad_B = init_gradB
         grad_C = init_gradC
-        grad_V1 = init_gradV1
-        grad_S1 = init_gradS1
-        grad_V2 = init_gradV2
-        grad_S2 = init_gradS2
         alnments = []
         for i in range(num_steps):
-            for j in range(i+1)[::-1]:
-                np_est = tf.transpose(tf.matmul(tf.diag(loss_pert[i] - loss[i])/var_xi/var_xi, noise_outputs[j]))
+            for j in range(i+1-delay)[::-1]:
+                print(i,j)
+                np_est = tf.matmul(tf.diag(loss_pert[i] - loss[i])/var_xi/var_xi, noise_outputs[j])
                 delta = tf.gradients(xs = rnn_outputs[j], ys = loss[i])[0]
-                #grad_V1 += tf.matmul(tf.transpose(delta), delta)
-                #grad_S1 += tf.matmul(np_est, delta)
+                #print(i,j)
+                #print(delta)
+                aux_loss = tf.reduce_sum(tf.pow(np_est - delta, 2))
+                grad_B += tf.squeeze(tf.gradients(xs = B, ys = aux_loss))
+
         grad_V = tf.gradients(xs=V, ys=total_loss)[0]
         grad_W = tf.gradients(xs=W, ys=total_loss)[0]
         grad_U = tf.gradients(xs=U, ys=total_loss)[0]
-        return grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, alnments
+        return grad_U, grad_W, grad_B, grad_C, grad_V, alnments
 
     if method == 'backprop':
         trainer = backprop
@@ -186,10 +186,6 @@ def main():
     init_gradB = tf.zeros([state_size+1, state_size], dtype=np.float32)
     init_gradC = tf.zeros([state_size+1, 1], dtype=np.float32)
     init_gradU = tf.zeros([in_dim/2, state_size], dtype=np.float32)
-    init_gradV1 = tf.zeros([state_size, state_size], dtype=np.float32)
-    init_gradS1 = tf.zeros([state_size+1, state_size], dtype=np.float32)
-    init_gradV2 = tf.zeros([1, 1], dtype=np.float32)
-    init_gradS2 = tf.zeros([state_size+1, 1], dtype=np.float32)
     alignment = tf.zeros([in_dim/2, state_size], dtype=np.float32)
 
     ones0 = tf.ones([batch_size, 1], tf.float32)
@@ -197,18 +193,8 @@ def main():
     W = tf.Variable(rng.randn(state_size+1, state_size)*alpha2, name="feedforward_weights", dtype=tf.float32)
     V = tf.Variable(rng.randn(state_size+1, 1)*alpha2, name="output_weights", dtype=tf.float32)
 
-    V1 = tf.Variable(beta*np.eye(state_size), dtype=tf.float32)
-    S1 = tf.Variable(np.zeros((state_size+1, state_size)), dtype=tf.float32)
-    V2 = tf.Variable(beta*np.eye(1), dtype=tf.float32)
-    S2 = tf.Variable(np.zeros((state_size+1, 1)), dtype=tf.float32)
-
-    if method == 'nodepert':
-        print("Using node pert B def")
-        B = tf.matmul(S1, tf.matrix_inverse(V1))
-        C = tf.matmul(S2, tf.matrix_inverse(V2))
-    else:
-        B = tf.Variable(rng.randn(state_size+1, state_size)*alpha2, name="feedback_weights", dtype=tf.float32)
-        C = tf.Variable(rng.randn(state_size+1, 1)*alpha2, name="feedback_weights", dtype=tf.float32)
+    B = tf.Variable(rng.randn(state_size+1, state_size)*alpha2, name="feedback_weights", dtype=tf.float32)
+    C = tf.Variable(rng.randn(state_size+1, 1)*alpha2, name="feedback_weights", dtype=tf.float32)
 
     ##############################################
     ## Define the cartpole dynamics and network ##
@@ -242,9 +228,10 @@ def main():
     #h_d += tau*h_dd
     #h += tau*h_d
 
+
     for idx in range(num_steps):
-        mask = tf.random_uniform([batch_size, state_size+1]) < p_fire
-        xi = tf.multiply(tf.random_normal([batch_size, state_size+1])*var_xi, tf.to_float(mask))
+        mask = tf.random_uniform([batch_size, state_size]) < p_fire
+        xi = tf.multiply(tf.random_normal([batch_size, state_size])*var_xi, tf.to_float(mask))
         phi = tf.random_normal((batch_size,1))*Fmax/500
         #Compute new state
         state = rnn_cell(x, state, W, U, B)
@@ -253,8 +240,12 @@ def main():
         if method == 'backprop':
             action = tf.matmul(tf.concat([state, ones0], 1), V)
         else:
-            action = tf_matmul_r(tf.concat([state, ones0], 1), V, C)            
-        F = tf.squeeze(Fmax*activation(action) + phi)
+            action = tf_matmul_r(tf.concat([state, ones0], 1), V, C)
+        actions.append(action)
+
+        d_idx = max(0, idx-delay)
+        #d_idx = idx
+        F = tf.squeeze(Fmax*activation(actions[d_idx]) + phi)
         #Compute new x
         theta_dd = (m*g*tf.sin(x[:,1]) - tf.cos(x[:,1])*(F + mp*l*x[:,0]*x[:,0]*tf.sin(x[:,1])))/((4/3)*m*l -\
                     mp*l*tf.cos(x[:,1])*tf.cos(x[:,1]))
@@ -278,7 +269,6 @@ def main():
         rnn_outputs.append(state)
         rnn_pert_outputs.append(state_p)
         noise_outputs.append(xi)
-        actions.append(action)
         
     final_x = rnn_inputs[-1]
     final_state = rnn_outputs[-1]
@@ -295,28 +285,20 @@ def main():
 
     ##################################################
 
-    grad_U, grad_W, grad_B, grad_C, grad_V, grad_V1, grad_S1, grad_V2, grad_S2, aments = trainer()
+    grad_U, grad_W, grad_B, grad_C, grad_V, aments = trainer()
     new_U = U.assign(U - learning_rate*grad_U)            
     new_W = W.assign(W - learning_rate*grad_W)           
     new_V = V.assign(V - learning_rate*grad_V)          
-    new_V1 = V1.assign(V1 + grad_V1)
-    new_S1 = S1.assign(S1 + grad_S1)
-    new_V2 = V2.assign(V2 + grad_V2)
-    new_S2 = S2.assign(S2 + grad_S2)
 
-    if method == 'nodepert':
-        train_step_B = [new_V1, new_S1, new_V2, new_S2]
-        train_step = [new_U, new_W, new_V, new_V1, new_S1, new_V2, new_S2]
-    else:
-        new_C = C.assign(C - lmbda*tf.clip_by_value(grad_C, -grad_max, grad_max, name=None))
-        new_B = B.assign(B - lmbda*tf.clip_by_value(grad_B, -grad_max, grad_max, name=None))
-        train_step_B = [new_B, new_C]
-        train_step = [new_U, new_W, new_V, new_B, new_C]
+    new_C = C.assign(C - lmbda*tf.clip_by_value(grad_C, -grad_max, grad_max, name=None))
+    new_B = B.assign(B - lmbda*tf.clip_by_value(grad_B, -grad_max, grad_max, name=None))
+    train_step_B = [new_B, new_C]
+    train_step = [new_U, new_W, new_V, new_B, new_C]
 
     #Save training losses, params, number of runs in epoch, alignment to BP
     all_losses = []
     all_alignments = []
-    training_losses, n_in_epoch, alignments, xs = train_network(N_episodes, num_steps)
+    training_losses, n_in_epoch, alignments, xs = train_network(N_episodes, num_steps, n_runs=n_runs)
     all_losses.append(training_losses)
     all_alignments.append(alignments)
 
