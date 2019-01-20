@@ -50,7 +50,7 @@
 
 {
   "exp_name": "feedbackalignment4_small",
-  "num_epochs": 1000,
+  "num_epochs": 2000,
   "num_iter_per_epoch": 1000,
   "learning_rate": 0.0004,
   "batch_size": 32,
@@ -60,7 +60,7 @@
 
 {
   "exp_name": "backprop4_small",
-  "num_epochs": 1000,
+  "num_epochs": 2000,
   "num_iter_per_epoch": 1000,
   "learning_rate": 0.0004,
   "batch_size": 32,

@@ -1,12 +1,11 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
 import pickle
-
 from data_loader.data_generator import MNISTDataGenerator
 from models.npmodels import AENPModel5_ExactLsq, AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_BPSelf, \
                                 AENPModel5_ExactLsq_FAAuto, AENPModel5_ExactLsq_FASelf, AENPModel5
@@ -15,11 +14,6 @@ from utils.config import process_config
 from utils.dirs import create_dirs
 from utils.utils import get_args
 from utils.logger import LoggerNumpy, Logger
-
-import cProfile
-import re
-
-from tensorflow.python.client import timeline
 
 def set_hyperparameters(config, attr, vals):
     for idx, val in enumerate(vals):
@@ -46,13 +40,12 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-2, 1e-1, 3e-1, 1]
+    var_vals = [3e-1, 1e-2, 1e-1, 3e-1]
     #var_vals = [1e-2]
     N = len(var_vals)
     #M = 5
     M = 1
     T = config.num_epochs+1
-
     n_tags = 13
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
@@ -80,9 +73,8 @@ def main():
                 tags = logger.get_tags()
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
-
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "3_autoencoder.npz"
+        fn = os.path.join(config.summary_dir) + "3_autoencoder_correctbatch.npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,
@@ -90,7 +82,6 @@ def main():
             'tags': tags
         }
         pickle.dump(to_save, open(fn, "wb"))
-
     return metrics
 
 if __name__ == '__main__':    

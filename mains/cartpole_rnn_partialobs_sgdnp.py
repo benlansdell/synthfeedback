@@ -1,6 +1,6 @@
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]=''
 
 import numpy as np
 import numpy.random as rand
@@ -52,7 +52,7 @@ def main():
     beta = 0.1
 
     report_rate = 100
-    fn_out = './experiments/cartpole_rnn_partialobs_sgdnp/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
+    fn_out = './experiments/cartpole_rnn_partialobs_sgdnp/%s_learning_rate_%f_lmbda_%f_varxi_%f_multipleruns.npz'%(method, learning_rate, lmbda, var_xi)
 
     #Things to save with output
     params = {
@@ -94,41 +94,42 @@ def main():
     else:
         rnn_cell = rnn_cell_fa
 
-    def train_network(num_episodes, num_steps, state_size=state_size, verbose=True):
-        xs = np.zeros((N_epochs, num_episodes, num_steps, batch_size, in_dim))
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            training_losses = []
-            alignments = []
+    def train_network(num_episodes, num_steps, state_size=state_size, verbose=True, n_runs = 5):
+        xs = np.zeros((n_runs, N_epochs, num_episodes, num_steps, batch_size, in_dim))
+        for run_idx in range(n_runs):
+            with tf.Session() as sess:
+                sess.run(tf.global_variables_initializer())
+                training_losses = []
+                alignments = []
 
-            for idx in range(N_epochs):
-                print("Epoch: %d"%idx)
-                if idx < 4 and acclimatize:
-                    ts = train_step_B
-                else:
-                    ts = train_step
-                training_loss = 0
-                training_x = np.zeros((batch_size, in_dim))
-                training_state = np.zeros((batch_size, state_size))
-                for step in range(num_episodes):
-                    tr_init_gradW = np.zeros((state_size+1, state_size))
-                    tr_init_gradB = np.zeros((state_size+1, state_size))
-                    tr_init_gradC = np.zeros((state_size+1, 1))
-                    tr_init_gradU = np.zeros((int(in_dim/2), state_size))
-                    tr_loss, tr_losses, training_loss_, training_state, training_x, _, align, x_o = \
-                        sess.run([loss, losses, total_loss, final_state, final_x, ts, aments, rnn_inputs], \
-                                      feed_dict={init_state:training_state, init_x: training_x, \
-                                      init_gradU: tr_init_gradU, init_gradW: tr_init_gradW, \
-                                      init_gradB: tr_init_gradB, init_gradC: tr_init_gradC})
-                    xs[idx, step, :, :, :] = np.array(x_o)[:,:,:]
-                    training_loss += training_loss_
-                if idx % report_rate == 0 and idx > 0:
-                    if verbose:
-                        print("Average loss at epoch %d for last %d steps: %f"%(idx, report_rate, \
-                                                                               training_loss/report_rate/num_episodes))
-                    training_losses.append(training_loss/report_rate/num_episodes)
-                    alignments.append(align)
+                for idx in range(N_epochs):
+                    print("Epoch: %d"%idx)
+                    if idx < 4 and acclimatize:
+                        ts = train_step_B
+                    else:
+                        ts = train_step
                     training_loss = 0
+                    training_x = np.zeros((batch_size, in_dim))
+                    training_state = np.zeros((batch_size, state_size))
+                    for step in range(num_episodes):
+                        tr_init_gradW = np.zeros((state_size+1, state_size))
+                        tr_init_gradB = np.zeros((state_size+1, state_size))
+                        tr_init_gradC = np.zeros((state_size+1, 1))
+                        tr_init_gradU = np.zeros((int(in_dim/2), state_size))
+                        tr_loss, tr_losses, training_loss_, training_state, training_x, _, align, x_o = \
+                            sess.run([loss, losses, total_loss, final_state, final_x, ts, aments, rnn_inputs], \
+                                          feed_dict={init_state:training_state, init_x: training_x, \
+                                          init_gradU: tr_init_gradU, init_gradW: tr_init_gradW, \
+                                          init_gradB: tr_init_gradB, init_gradC: tr_init_gradC})
+                        xs[run_idx, idx, step, :, :, :] = np.array(x_o)[:,:,:]
+                        training_loss += training_loss_
+                    if idx % report_rate == 0 and idx > 0:
+                        if verbose:
+                            print("Average loss at epoch %d for last %d steps: %f"%(idx, report_rate, \
+                                                                                   training_loss/report_rate/num_episodes))
+                        training_losses.append(training_loss/report_rate/num_episodes)
+                        alignments.append(align)
+                        training_loss = 0
 
         return training_losses, step, alignments, xs
 
