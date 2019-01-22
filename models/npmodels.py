@@ -311,6 +311,8 @@ class NPModel4_ExactLsq(BaseModel):
             #mean squared error
             self.loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             self.loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2))/2
+            loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2),1)/2
+            loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2),1)/2
             e = (y_p_0 - self.y)
             h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
             h2_prime_0 = tf.multiply(h2_0_aug, 1-h2_0_aug)[:,0:j]
@@ -326,8 +328,10 @@ class NPModel4_ExactLsq(BaseModel):
             d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
 
-            np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
-            np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
+            np_est1 = tf.matmul(tf.transpose(xi1),tf.diag(loss_p - loss)/var_xi/var_xi)
+            np_est2 = tf.matmul(tf.transpose(xi2),tf.diag(loss_p - loss)/var_xi/var_xi)
+            #np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
+            #np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
             #grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - np_est1, d2)
             #grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - np_est2, e)
 
@@ -440,6 +444,8 @@ class NPModel3_ExactLsq(BaseModel):
             #mean squared error
             self.loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2))/2
             self.loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2))/2
+            loss_p = tf.reduce_sum(tf.pow(y_p-self.y, 2),1)/2
+            loss = tf.reduce_sum(tf.pow(y_p_0-self.y, 2),1)/2
             e = (y_p_0 - self.y)
             print("h1_aug:",h1_aug.shape)
             h1_prime_0 = tf.multiply(h1_aug, 1-h1_aug)[:,0:m]
@@ -451,7 +457,9 @@ class NPModel3_ExactLsq(BaseModel):
             d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
 
-            np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
+            np_est1 = tf.matmul(tf.transpose(xi1),tf.diag(loss_p - loss)/var_xi/var_xi)
+            
+            #np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
             #np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
             #grad_B1 = tf.matmul(tf.matmul(B1, tf.transpose(d2)) - np_est1, d2)
             #grad_B2 = tf.matmul(tf.matmul(B2, tf.transpose(e)) - np_est2, e)
