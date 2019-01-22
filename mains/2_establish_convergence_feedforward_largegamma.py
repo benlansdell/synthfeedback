@@ -1,6 +1,6 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 #python -m cProfile -o 2_profile.txt ./mains/2_establish_convergence_feedforward.py
 

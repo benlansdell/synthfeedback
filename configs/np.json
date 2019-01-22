@@ -47,6 +47,48 @@
 },
 
 {
+  "exp_name": "nodepert_ae5_sgd_convparams",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_bp_convparams",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_fa_convparams",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
   "exp_name": "nodepert_ae5_bpauto",
   "num_epochs": 1000,
   "num_iter_per_epoch": 1000,
@@ -195,6 +237,31 @@
   "batch_size": 32,
   "state_size": [784],
   "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert4_fixedw_correctbatch",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert4_fixedw_exact_linear",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma":0.1
 },
 
 {

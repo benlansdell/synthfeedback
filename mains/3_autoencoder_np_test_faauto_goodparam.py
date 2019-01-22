@@ -21,16 +21,15 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_sgd'
-    #model_name = 'nodepert_ae5_bpauto'
-    #model_name = 'nodepert_ae5_bpself'
-    #model_name = 'nodepert_ae5_faauto'
-    #model_name = 'nodepert_ae5_faself'
-    Model = AENPModel5
+    #model_name = 'nodepert_ae5_sgd_convparams'
+    model_name = 'nodepert_ae5_fa_convparams'
+    #model_name = 'nodepert_ae5_bp_convparams'
+
+    #Model = AENPModel5
     #Model = AENPModel5_ExactLsq
     #Model = AENPModel5_ExactLsq_BPAuto
     #Model = AENPModel5_ExactLsq_BPSelf
-    #Model = AENPModel5_ExactLsq_FAAuto
+    Model = AENPModel5_ExactLsq_FAAuto
     #Model = AENPModel5_ExactLsq_FASelf
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
@@ -38,11 +37,8 @@ def main():
     config = process_config('./configs/np.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
-    #Param search parameters
-    attr = ['var_xi']
-    var_vals = [3e-1, 1e-2, 1e-1, 3e-1]
     #var_vals = [1e-2]
-    N = len(var_vals)
+    N = 1
     #M = 5
     M = 1
     T = config.num_epochs+1
@@ -52,12 +48,9 @@ def main():
     metrics = np.zeros((N, M, T, n_tags))
 
     for n in range(N):
-        var_val = [var_vals[n]]
-        set_hyperparameters(config, attr, var_val)
         tf.reset_default_graph()
         model = Model(config)
         data = Data(config)
-        print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
         for m in range(M):
             with tf.Session() as sess:
                 logger = LoggerNumpy(sess, config, model)

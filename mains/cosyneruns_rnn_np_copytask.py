@@ -2,7 +2,7 @@
 import numpy as np
 
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]=''
 
 import numpy.random as rand
 import tensorflow as tf
@@ -36,7 +36,7 @@ def main():
     anneal = True
 
     # Global config variables
-    num_steps = 7 # number of truncated backprop steps ('n' in the discussion above)
+    num_steps = 10 # number of truncated backprop steps ('n' in the discussion above)
     batch_size = 200
     in_dim = 2
     state_size = 50
@@ -55,9 +55,11 @@ def main():
     grad_max = 10
 
     N_runs = 3
-    N_epochs = 200
+    N_epochs = 500
 
-    fn_out = './experiments/rnn_np/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
+    N_inputs = 10
+
+    fn_out = './experiments/rnn_np_copytask/%s_learning_rate_%f_lmbda_%f_varxi_%f_Ninputs_%d.npz'%(method, learning_rate, lmbda, var_xi, N_inputs)
 
     #Things to save with output
     params = {
@@ -93,14 +95,13 @@ def main():
         state_p = tf.concat([state, ones0], 1)
         return activation(tf.matmul(rnn_input, U) + tf.matmul(state_p, W))
 
-    def gen_data(size=1000000):
-        N_inputs = 7
+    def gen_data(N_inputs, size=1000000):
         X = np.zeros((in_dim,size))
         Y = np.zeros(size)
         #Add some go cues at random points
-        for i in range(size,2*N_inputs):
+        for i in range(0,size,2*N_inputs):
             Xs = [1 if a < 0.5 else -1 for a in rand.random(N_inputs)]
-            Y[0,(i+N_inputs):(i+2*N_inputs)] = Xs 
+            Y[(i+N_inputs):(i+2*N_inputs)] = Xs 
             X[0,i:(i+N_inputs)] = Xs 
             X[1,i] = 1
             X[1,(i+N_inputs)] = -1
@@ -127,7 +128,7 @@ def main():
 
     def gen_epochs(n, num_steps):
         for i in range(n):
-            yield gen_batch(gen_data(), batch_size, num_steps)
+            yield gen_batch(gen_data(N_inputs), batch_size, num_steps)
 
     def train_network(num_epochs, num_steps, state_size=state_size, verbose=True):
         with tf.Session() as sess:
