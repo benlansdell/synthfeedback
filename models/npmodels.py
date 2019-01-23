@@ -704,7 +704,7 @@ class NPModel4_ExactLsq_Linear_CorrectBatch(BaseModel):
         y_p = tf.matmul(h2_tilde, W2)
 
         #Compute unperturbed output
-        h2_0 = tf.sigmoid(tf.matmul(h1_aug, W1))
+        h2_0 = tf.matmul(h1_aug, W1)
         h2_0_aug = tf.concat([h2_0, e1], 1)
         y_p_0 = tf.matmul(h2_0_aug, W2)
 

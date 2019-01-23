@@ -39,10 +39,10 @@ def main():
 
     #Param search parameters
     attr = ['var_xi']
-    var_vals = [1e-4, 1e-3, 1e-2, 1e-1]
+    var_vals = [1e-3, 1e-2, 1e-1]
     #var_vals = [1e-1]
     N = len(var_vals)
-    M = 5
+    M = 3
     T = config.num_epochs+1
 
     n_tags = 10

@@ -42,10 +42,10 @@ def main():
     var_vals = [1e-3, 1e-2, 1e-1]
     #var_vals = [1e-1]
     N = len(var_vals)
-    M = 1
+    M = 5
     T = config.num_epochs+1
 
-    n_tags = 12
+    n_tags = 10
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
