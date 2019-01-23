@@ -54,7 +54,7 @@ def main():
     beta = 0.1
 
     report_rate = 100
-    fn_out = './experiments/cartpole_rnn_partialobs_sgdnp_delayed/%s_learning_rate_%f_lmbda_%f_varxi_%f_multipleruns.npz'%(method, learning_rate, lmbda, var_xi)
+    fn_out = './experiments/cartpole_rnn_partialobs_sgdnp/%s_learning_rate_%f_lmbda_%f_varxi_%f_multipleruns.npz'%(method, learning_rate, lmbda, var_xi)
 
     #Things to save with output
     params = {
