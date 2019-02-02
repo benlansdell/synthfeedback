@@ -15,6 +15,7 @@ class LoggerNumpy:
         self.tags = None
 
     def summarize(self, step, summarizer="train", scope="", summaries_dict=None):
+        print("summaries_dict:",summaries_dict)
         if summaries_dict is not None:
             with tf.variable_scope("loss"):
                 summ = []

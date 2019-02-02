@@ -46,7 +46,7 @@ class SFTrainer(BaseTrain):
         print("in sf_trainer.py, length of metrics:",len(metrics))
         print("in sf_trainer.py, length of metric_tags:",len(metric_tags))
         for idx in range(len(metrics)):
-            print(idx)
+            #print(idx)
             #summaries_dict['metrics'] = np.array(metrics)
             summaries_dict[metric_tags[idx]] = metrics[idx]
 

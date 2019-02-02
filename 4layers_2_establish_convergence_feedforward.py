@@ -43,8 +43,8 @@ def main():
     N = len(var_vals)
     M = 3
     T = config.num_epochs+1
-
-    n_tags = 8
+    
+    n_tags = 10
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
@@ -85,7 +85,7 @@ def main():
                 #    f.write(chrome_trace)
 
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output_4layer.npz"
+        fn = os.path.join(config.summary_dir) + "2_establish_convergence_feedforward_output_4layer(condnum).npz"
         to_save = {
             'test_losses': test_losses,
             'metrics': metrics,

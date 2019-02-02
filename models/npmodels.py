@@ -354,28 +354,38 @@ class NPModel4_ExactLsq(BaseModel):
 
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
+    
+            eigen_V1=tf.abs(tf_eigvals(V1))
+            eigen_V2=tf.abs(tf_eigvals(V2))
+            
+            cond_num_V1=tf.reduce_max(eigen_V1)/tf.reduce_min(eigen_V1)
+            cond_num_V2=tf.reduce_max(eigen_V2)/tf.reduce_min(eigen_V2)
             #Save training metrics
             Bs = [B1, B2]
             Ws = [W1, W2]
+            cond_num = [cond_num_V1,cond_num_V2]
             es = [d2, e]
             #gradBs = [tf.norm(grad_B1), tf.norm(grad_B2)]
-            self._set_training_metrics(Ws, Bs, es)
+            self._set_training_metrics(Ws, Bs, es,cond_num)
 
     def init_saver(self):
         # here you initialize the tensorflow saver that will be used in saving the checkpoints.
         self.saver = tf.train.Saver(max_to_keep=self.config.max_to_keep)
 
-    def _set_training_metrics(self, Ws, Bs, es):
+    def _set_training_metrics(self, Ws, Bs, es,cond_num):
         for idx in range(len(Bs)):
             delta_fa = tf.matmul(es[idx], tf.transpose(Bs[idx]))[0,:]
             delta_bp = tf.matmul(es[idx], tf.transpose(Ws[idx]))[0,:]
             alignment = tf.abs(tf_align(delta_fa, delta_bp))
             norm = tf.norm(Ws[idx] - Bs[idx])/tf.norm(Ws[idx])
             self.training_metric_tags.append('align_B%d'%(idx+2))
+            #print("first",self.training_metric_tags)
             self.training_metrics.append(alignment)
             self.training_metric_tags.append('norm_W%d_B%d'%(idx+2, idx+2))
             self.training_metrics.append(norm)
+            self.training_metric_tags.append('Cond_num_V%d'%(idx+1))
+            self.training_metrics.append(cond_num[idx])
+            #print("second",self.training_metric_tags)
 
 class NPModel3_ExactLsq(BaseModel):
     #Four layers version
