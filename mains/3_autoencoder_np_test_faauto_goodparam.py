@@ -1,14 +1,13 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=""
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_ExactLsq, AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_BPSelf, \
-                                AENPModel5_ExactLsq_FAAuto, AENPModel5_ExactLsq_FASelf, AENPModel5
+from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -40,7 +39,7 @@ def main():
     #var_vals = [1e-2]
     N = 1
     #M = 5
-    M = 1
+    M = 3
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))

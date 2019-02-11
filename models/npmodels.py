@@ -462,7 +462,7 @@ class AENPModel5_ExactLsq_BPAuto(BaseModel):
 
         self.build_model()
         #Whether to save or not....
-        #self.init_saver()
+        self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
@@ -654,7 +654,7 @@ class AENPModel5_ExactLsq_FAAuto(BaseModel):
 
         self.build_model()
         #Whether to save or not....
-        #self.init_saver()
+        self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
@@ -845,7 +845,7 @@ class AENPModel5(BaseModel):
 
         self.build_model()
         #Whether to save or not....
-        #self.init_saver()
+        self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
