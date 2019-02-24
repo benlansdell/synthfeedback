@@ -16,7 +16,6 @@ from utils.config import process_config
 from utils.dirs import create_dirs
 from utils.utils import get_args
 from utils.logger import LoggerNumpy
-
 import cProfile
 import re
 
@@ -39,10 +38,13 @@ def main():
     #Param search parameters
     attr = ['neurons']
     #var_vals = [1e-3, 1e-2, 1e-1, 1, 10]
-    var_vals = [30,100,300,1000]
+    var_vals = [30,100]
     N = len(var_vals)
     M = 3
+    #config.num_epoch=5
+    #print("\n\n",config.num_epoch)
     T = config.num_epochs+1
+    config.gamma=250000
     
     n_tags = 10
     test_losses = np.zeros((N, M))
@@ -51,12 +53,13 @@ def main():
 
     tfconfig = tf.ConfigProto()
     tfconfig.gpu_options.allow_growth = True
-
+    
     for n in range(N):
         var_val = [var_vals[n]]
         set_hyperparameters(config, attr, var_val)
         tf.reset_default_graph()
         model = Model(config)
+        #print("\n\n",config.num_epoch)
         data = Data(config)
         print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
         for m in range(M):
@@ -75,7 +78,6 @@ def main():
                 loss, acc = trainer.test()
                 metric = logger.get_data()
                 tags = logger.get_tags()
-                print("tags are here",tags)
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
 

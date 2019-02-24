@@ -43,8 +43,8 @@ class SFTrainer(BaseTrain):
             'loss_test': loss_test,
             'acc_test': acc_test
         }
-        print("in sf_trainer.py, length of metrics:",len(metrics))
-        print("in sf_trainer.py, length of metric_tags:",len(metric_tags))
+        #print("in sf_trainer.py, length of metrics:",len(metrics))
+        #print("in sf_trainer.py, length of metric_tags:",len(metric_tags))
         for idx in range(len(metrics)):
             #print(idx)
             #summaries_dict['metrics'] = np.array(metrics)

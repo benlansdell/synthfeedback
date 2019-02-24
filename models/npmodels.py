@@ -53,7 +53,9 @@ def tf_align(x, y):
     theta = 180/np.pi*tf.abs(tf.acos(tf.reduce_sum(tf.multiply(x,y))/tf.norm(x)/tf.norm(y)))
     #if (theta > 90) and (theta < 180):
     #    theta = 90 - theta
-    return tf.cond(tf.logical_and(tf.less(90.0,theta), tf.less(theta,180.0)), lambda: 180.0 - theta, lambda: theta)
+    constant_180=tf.constant(180.0,dtype=tf.float64)
+    constant_90=tf.constant(90.0,dtype=tf.float64)
+    return tf.cond(tf.logical_and(tf.less(constant_90,theta), tf.less(theta,constant_180)), lambda: constant_180 - theta, lambda: theta)
 
 class NPModel(BaseModel):
     def __init__(self, config):
@@ -253,8 +255,8 @@ class NPModel4_ExactLsq(BaseModel):
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
-        self.x = tf.placeholder(tf.float32, shape=[None] + self.config.state_size)
-        self.y = tf.placeholder(tf.float32, shape=[None, 10])
+        self.x = tf.placeholder(tf.float64, shape=[None] + self.config.state_size)
+        self.y = tf.placeholder(tf.float64, shape=[None, 10])
 
         # set initial feedforward and feedback weights
         p = self.config.state_size[0]
@@ -273,30 +275,30 @@ class NPModel4_ExactLsq(BaseModel):
         alpha3 = 1
 
         #Plus one for bias terms
-        A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float32)
-        W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float32)
-        W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
+        A = tf.Variable(rng.randn(p+1,m)*alpha0, name="hidden_weights", dtype=tf.float64)
+        W1 = tf.Variable(rng.randn(m+1,j)*alpha1, name="hidden_weights2", dtype=tf.float64)
+        W2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float64)
 
-        V1 = tf.Variable(gamma*np.eye(j), dtype=tf.float32)
-        V2 = tf.Variable(gamma*np.eye(n), dtype=tf.float32)
-        S1 = tf.Variable(np.zeros((m+1,j)), dtype=tf.float32)
-        S2 = tf.Variable(np.zeros((j+1,n)), dtype=tf.float32)
+        V1 = tf.Variable(gamma*np.eye(j), dtype=tf.float64)
+        V2 = tf.Variable(gamma*np.eye(n), dtype=tf.float64)
+        S1 = tf.Variable(np.zeros((m+1,j)), dtype=tf.float64)
+        S2 = tf.Variable(np.zeros((j+1,n)), dtype=tf.float64)
 
         #The exact least squares solution for synth grad estimation
         B1 = tf.matmul(S1, tf.matrix_inverse(V1))
         B2 = tf.matmul(S2, tf.matrix_inverse(V2))
 
         # network architecture with ones added for bias terms
-        e0 = tf.ones([self.config.batch_size, 1], tf.float32)
-        e1 = tf.ones([self.config.batch_size, 1], tf.float32)
+        e0 = tf.ones([self.config.batch_size, 1], tf.float64)
+        e1 = tf.ones([self.config.batch_size, 1], tf.float64)
         x_aug = tf.concat([self.x, e0], 1)
         h1 = tf.sigmoid(tf.matmul(x_aug, A))
         h1_aug = tf.concat([h1, e1], 1)
-        xi1 = tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
+        xi1 = tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float64)
         h1_tilde = h1_aug + xi1
         h2 = tf.sigmoid(tf.matmul(h1_tilde, W1))
         h2_aug = tf.concat([h2, e1], 1)
-        xi2 = tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
+        xi2 = tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float64)
         h2_tilde = h2_aug + xi2
         y_p = tf.matmul(h2_tilde, W2)
 
@@ -353,7 +355,7 @@ class NPModel4_ExactLsq(BaseModel):
             self.train_step = [new_W1, new_A, new_V1, new_S1, new_W2, new_V2, new_S2]
 
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float64))
     
             eigen_V1=tf.abs(tf_eigvals(V1))
             eigen_V2=tf.abs(tf_eigvals(V2))
