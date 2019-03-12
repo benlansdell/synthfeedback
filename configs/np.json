@@ -34,7 +34,7 @@
 
 {
   "exp_name": "nodepert_ae5_sgd",
-  "num_epochs": 1000,
+  "num_epochs": 500,
   "num_iter_per_epoch": 1000,
   "learning_rate": 5e-5,
   "lmda_learning_rate": 1e-4,
@@ -44,6 +44,17 @@
   "network_size": [200,2,200,784],
   "gamma": 0.1,
   "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_adam",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784]
 },
 
 {
@@ -90,7 +101,7 @@
 
 {
   "exp_name": "nodepert_ae5_bpauto",
-  "num_epochs": 1000,
+  "num_epochs": 500,
   "num_iter_per_epoch": 1000,
   "learning_rate": 5e-5,
   "batch_size": 32,
@@ -116,7 +127,7 @@
 
 {
   "exp_name": "nodepert_ae5_faauto",
-  "num_epochs": 1000,
+  "num_epochs": 500,
   "num_iter_per_epoch": 1000,
   "learning_rate": 5e-5,
   "batch_size": 32,
