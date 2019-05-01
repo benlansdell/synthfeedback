@@ -1,0 +1,54 @@
+[{
+  "exp_name": "bptt",
+  "num_epochs": 30,
+  "num_iter_per_epoch": 100,
+  "learning_rate": 1e-3,
+  "batch_size": 200,
+  "state_size": [50],
+  "max_to_keep":5,
+  "trial_length":50,
+  "num_steps":7,
+  "in_dim":2
+},
+
+{
+  "exp_name": "fa_rnn",
+  "num_epochs": 30,
+  "num_iter_per_epoch": 100,
+  "learning_rate": 1e-5,
+  "batch_size": 200,
+  "state_size": [50],
+  "max_to_keep":5,
+  "trial_length":50,
+  "num_steps":7,
+  "in_dim":2
+},
+
+{
+  "exp_name": "nodepert_rnn",
+  "num_epochs": 30,
+  "num_iter_per_epoch": 100,
+  "learning_rate": 0.1,
+  "lmda_learning_rate": 0.0001,
+  "var_xi": 0.1,
+  "batch_size": 200,
+  "state_size": [50],
+  "max_to_keep":5,
+  "trial_length":50,
+  "num_steps":7,
+  "in_dim":2
+},
+
+{
+  "exp_name": "bptt_short",
+  "num_epochs": 10,
+  "num_iter_per_epoch": 100,
+  "learning_rate": 1e-3,
+  "batch_size": 200,
+  "state_size": [50],
+  "max_to_keep":5,
+  "trial_length":7,
+  "num_steps":7,
+  "in_dim":2
+}
+]

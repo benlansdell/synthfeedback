@@ -33,6 +33,152 @@
 },
 
 {
+  "exp_name": "nodepert_ae5_sgd",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "lmda_learning_rate": 1e-4,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_adam",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784]
+},
+
+{
+  "exp_name": "nodepert_ae5_sgd_convparams",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_bp_convparams",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_fa_convparams",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_bpauto",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_bpself",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_faauto",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_faself",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3
+},
+
+{
+  "exp_name": "nodepert_ae5_warmup",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 5e-5,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 1e-3,
+  "warmup_epoch": 10
+},
+
+{
   "exp_name": "directnodepert4",
   "num_epochs": 100,
   "num_iter_per_epoch": 1000,
@@ -69,6 +215,18 @@
 },
 
 {
+  "exp_name": "nodepert_autoencoder_exact",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 500,
+  "learning_rate": 0.0001,
+  "lmda_learning_rate": 0.0,
+  "var_xi": 1e-1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
   "exp_name": "nodepert_dfa_autoencoder",
   "num_epochs": 100,
   "num_iter_per_epoch": 1000,
@@ -93,6 +251,7 @@
 },
 
 {
+<<<<<<< HEAD
   "exp_name": "nodepert4_fixedw_exact",
   "num_epochs": 10000,
   "num_iter_per_epoch": 1000,
@@ -107,15 +266,78 @@
 },
 {
   "exp_name": "nodepert3_fixedw_exact",
+=======
+  "exp_name": "nodepert4_fixedw_correctbatch",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert4_fixedw_exact_linear",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma":0.1
+},
+
+{
+  "exp_name": "nodepert4_fixedw_exact",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma":0.1
+},
+
+{
+  "exp_name": "nodepert4_fixedw_exact_largegamma",
+>>>>>>> 1d23ae68e5d17900e4b310abe73cc062d4b63ac3
   "num_epochs": 2000,
   "num_iter_per_epoch": 1000,
   "learning_rate": 0.0,
   "lmda_learning_rate": 0.0005,
+<<<<<<< HEAD
   "var_xi": 0.001,
   "batch_size": 32,
   "state_size": [784],
   "max_to_keep":5,
   "gamma":0.001,
   "neurons":100
+=======
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma": 50
+},
+
+{
+  "exp_name": "nodepert4_exact",
+  "num_epochs": 2000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0004,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.01,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "gamma":0.1,
+  "warmup_epoch": 1
+>>>>>>> 1d23ae68e5d17900e4b310abe73cc062d4b63ac3
 }
 ]

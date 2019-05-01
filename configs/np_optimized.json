@@ -1,0 +1,82 @@
+[{
+  "exp_name": "backprop",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.001,
+  "batch_size": 16,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0001,
+  "lmda_learning_rate": 0.0001,
+  "var_xi": 0.1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert4",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 500,
+  "learning_rate": 0.0005,
+  "lmda_learning_rate": 0.0005,
+  "var_xi": 0.05,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "directnodepert4",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0001,
+  "lmda_learning_rate": 0.0001,
+  "var_xi": 0.1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert_sanity",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0005,
+  "lmda_learning_rate": 0.0,
+  "var_xi": 1e-1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert_autoencoder",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0005,
+  "lmda_learning_rate": 0.0,
+  "var_xi": 1e-1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+},
+
+{
+  "exp_name": "nodepert_dfa_autoencoder",
+  "num_epochs": 100,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0005,
+  "lmda_learning_rate": 0.0,
+  "var_xi": 1e-1,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5
+}
+]
