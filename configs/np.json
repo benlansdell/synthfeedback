@@ -48,7 +48,7 @@
 
 {
   "exp_name": "nodepert_ae5_adam",
-  "num_epochs": 500,
+  "num_epochs": 1000,
   "num_iter_per_epoch": 1000,
   "learning_rate": 1e-4,
   "batch_size": 32,
@@ -59,6 +59,20 @@
 
 {
   "exp_name": "nodepert_ae5_sgd_convparams",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
+  "exp_name": "nodepert_ae5_matched_convparams",
   "num_epochs": 1000,
   "num_iter_per_epoch": 1000,
   "learning_rate": 1e-4,
@@ -312,6 +326,17 @@
   "state_size": [784],
   "max_to_keep":5,
   "gamma":0.1,
+  "warmup_epoch": 1
+},
+
+{
+  "exp_name": "nodepert4_matched",
+  "num_epochs": 1000,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 0.0004,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
   "warmup_epoch": 1
 }
 ]
