@@ -37,6 +37,7 @@ def main():
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
+    save_flag = False
 
     for n in range(N):
         tf.reset_default_graph()
@@ -65,7 +66,8 @@ def main():
             'isnan': isnan,
             'tags': tags
         }
-        pickle.dump(to_save, open(fn, "wb"))
+        if save_flag:
+            pickle.dump(to_save, open(fn, "wb"))
     return metrics
 
 if __name__ == '__main__':    

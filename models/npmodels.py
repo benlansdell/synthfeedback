@@ -1051,6 +1051,7 @@ class AENPModel5_ADAM(BaseModel):
         #y_p_0 = tf.matmul(h3_0_aug, W3)
         y_p_0 = tf.nn.relu(tf.matmul(h3_0_aug, W3))
         self.y_p = y_p_0
+        self.bottleneck = h2_0
 
         self.trainable = [A, W1, W2, W3]
 
