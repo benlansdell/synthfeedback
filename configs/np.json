@@ -47,6 +47,20 @@
 },
 
 {
+  "exp_name": "nodepert_ae5_sgd_correctgeom",
+  "num_epochs": 500,
+  "num_iter_per_epoch": 1000,
+  "learning_rate": 1e-4,
+  "lmda_learning_rate": 8e-6,
+  "batch_size": 32,
+  "state_size": [784],
+  "max_to_keep":5,
+  "network_size": [200,2,200,784],
+  "gamma": 0.1,
+  "var_xi": 0.018942
+},
+
+{
   "exp_name": "nodepert_ae5_adam",
   "num_epochs": 1000,
   "num_iter_per_epoch": 1000,
