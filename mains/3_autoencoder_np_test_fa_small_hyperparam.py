@@ -39,7 +39,7 @@ def main():
     #Model = AENPModel5_ExactLsq
     #Model = AENPModel5_ExactLsq_BPAuto
     #Model = AENPModel5_ExactLsq_BPSelf
-    Model = AENPModel5_ExactLsq_FAAuto
+    Model = AENPModel5_ExactLsq_FAAuto_Small
     #Model = AENPModel5_ExactLsq_FASelf
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
