@@ -542,6 +542,7 @@ class AENPModel5_ExactLsq_BPAuto(BaseModel):
         #y_p_0 = tf.matmul(h3_0_aug, W3)
         y_p_0 = tf.nn.relu(tf.matmul(h3_0_aug, W3))
         self.y_p = y_p_0
+        self.bottleneck = h2_0
 
         self.trainable = [A, W1, W2, W3, V1, V2, V3, S1, S2, S3]
 
@@ -734,6 +735,7 @@ class AENPModel5_ExactLsq_FAAuto(BaseModel):
         #y_p_0 = tf.matmul(h3_0_aug, W3)
         y_p_0 = tf.nn.relu(tf_matmul_r(h3_0_aug, W3, B3))
         self.y_p = y_p_0
+        self.bottleneck = h2_0
 
         self.trainable = [A, W1, W2, W3, V1, V2, V3, S1, S2, S3]
 
@@ -859,6 +861,8 @@ class AENPModel5(BaseModel):
         m = self.m                    # 200 (by default... could change)
         j = self.j                    # 2
         n = self.n                    # 200
+        nn = 50
+        #nn = n
         o = self.config.state_size[0] # 784
 
         #activation = tf.sigmoid
@@ -886,29 +890,23 @@ class AENPModel5(BaseModel):
         B2 = tf.Variable(rng.randn(j+1,n)*alpha2, name="output_weights", dtype=tf.float32)
         B3 = tf.Variable(rng.randn(n+1,o)*alpha2a, name="output_weights", dtype=tf.float32)
 
-        # first fully connected layer with 50 neurons using tanh activation
-        n1, A, _ = fa_layer(self.x, 28*28, 50, self.config)
+        n1, A, _ = fa_layer(self.x, 28*28, nn, self.config)
         l1 = tf.nn.tanh(n1)
-        # third fully connected layer with 2 neurons
-        n2, W1, B1 = fa_layer(l1, 50, 2, self.config)
+        n2, W1, B1 = fa_layer(l1, nn, 2, self.config)
         l2 = n2
-        # fourth fully connected layer with 50 neurons and tanh activation
-        n3, W2, B2 = fa_layer(l2, 2, 50, self.config)
+        n3, W2, B2 = fa_layer(l2, 2, nn, self.config)
         l3 = tf.nn.tanh(n3)
-        n4, W3, B3 = fa_layer(l3, 50, 28*28, self.config)
+        n4, W3, B3 = fa_layer(l3, nn, 28*28, self.config)
         y_p_0 = tf.nn.relu(n4)
 
         #Add noise to response
-        # first fully connected layer with 50 neurons using tanh activation
         l1_p, n1_p, xi1 = fc_layer_noise_act(self.x, A, var_xi, self.config, activation)
-        # second fully connected layer with 50 neurons using tanh activation
         l2_p, n2_p, xi2 = fc_layer_noise_act(l1_p, W1, var_xi, self.config, identity)
-        # third fully connected layer with 2 neurons
         l3_p, n3_p, xi3 = fc_layer_noise_act(l2_p, W2, var_xi, self.config, activation)
-        # fourth fully connected layer with 50 neurons and tanh activation
         y_p, n4_p, xi4 = fc_layer_noise_act(l3_p, W3, 0, self.config, tf.nn.relu)
 
         self.y_p = y_p_0
+        self.bottleneck = n2
         self.trainable = [A, W1, W2, W3, B1, B2, B3]
 
         with tf.name_scope("loss"):
@@ -938,7 +936,7 @@ class AENPModel5(BaseModel):
             grad_B3 = tf.matmul(tf.transpose(tf.gradients(xs=l3, ys=loss)[0] - tf.matmul(tf.diag(loss_p - loss)/var_xi/var_xi,xi3)),d4)
 
             grad_B1 = tf.concat([grad_B1, tf.zeros([1, 2], tf.float32)], 0)
-            grad_B2 = tf.concat([grad_B2, tf.zeros([1, 50], tf.float32)], 0)
+            grad_B2 = tf.concat([grad_B2, tf.zeros([1, nn], tf.float32)], 0)
             grad_B3 = tf.concat([grad_B3, tf.zeros([1, 784], tf.float32)], 0)
 
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
