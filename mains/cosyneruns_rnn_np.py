@@ -54,7 +54,7 @@ def main():
 
     grad_max = 10
 
-    N_runs = 3
+    N_runs = 10
     N_epochs = 200
 
     fn_out = './experiments/rnn_np/%s_learning_rate_%f_lmbda_%f_varxi_%f.npz'%(method, learning_rate, lmbda, var_xi)
@@ -115,7 +115,7 @@ def main():
                 X[1,i-d2] = X2
                 X1p = (X1 + 1)/2
                 X2p = (X2 + 1)/2
-                Yp = 2*(X1p^X2p)-1
+                Yp = 2*(int(X1p)^int(X2p))-1
                 Y.append(Yp)
             else:
                 Y.append(0)
