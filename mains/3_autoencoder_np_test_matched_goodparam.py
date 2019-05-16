@@ -1,13 +1,13 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]=""
 
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5, AENPModel5_CorrectGeom
+from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5_Matched
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -18,24 +18,13 @@ def set_hyperparameters(config, attr, vals):
     for idx, val in enumerate(vals):
         setattr(config, attr[idx], val)
 
-def set_random_hyperparameters(config, attrs, ranges, log_scale):
-    params = []
-    for idx, attr in enumerate(attrs):
-        val = rng.rand()*(ranges[idx][1]-ranges[idx][0])+ranges[idx][0]
-        if log_scale[idx]:
-            val = np.power(10, val)
-        setattr(config, attrs[idx], val)
-        params.append(val)
-    return params
-
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_sgd_correctgeom'
-    #model_name = 'nodepert_ae5_bpauto'
-    #model_name = 'nodepert_ae5_bpself'
-    #model_name = 'nodepert_ae5_faauto'
-    #model_name = 'nodepert_ae5_faself'
-    Model = AENPModel5_CorrectGeom
+    model_name = 'nodepert_ae5_matched_convparams'
+    #model_name = 'nodepert_ae5_sgd_convparams'
+    #model_name = 'nodepert_ae5_sgd_convparams'
+
+    Model = AENPModel5_Matched
     #Model = AENPModel5_ExactLsq
     #Model = AENPModel5_ExactLsq_BPAuto
     #Model = AENPModel5_ExactLsq_BPSelf
@@ -47,11 +36,8 @@ def main():
     config = process_config('./configs/np.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
-    #Param search parameters
-    attr = ['var_xi', 'learning_rate', 'lmda_learning_rate']
-    attr_ranges = [[-4, -1], [-6,-3], [-6, -3]]
-    log_scale = [True, True, True]
-    N = 20
+    #var_vals = [1e-2]
+    N = 1
     #M = 5
     M = 1
     T = config.num_epochs+1
@@ -59,15 +45,11 @@ def main():
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
-    params = []
 
     for n in range(N):
-        param = set_random_hyperparameters(config, attr, attr_ranges, log_scale)
-        params.append(param)
         tf.reset_default_graph()
         model = Model(config)
         data = Data(config)
-        print('Hyperparameters: ' + ' '.join([attr[ii] + ' = %f'%param[ii] for ii in range(len(attr))]))
         for m in range(M):
             with tf.Session() as sess:
                 logger = LoggerNumpy(sess, config, model)
@@ -84,10 +66,8 @@ def main():
                 test_losses[n,m] = loss
                 metrics[n,m,:,:] = metric
         #Save after each run
-        fn = os.path.join(config.summary_dir) + "3_autoencoder_correctbatch_hyperparam.npz"
+        fn = os.path.join(config.summary_dir) + "3_autoencoder_correctbatch.npz"
         to_save = {
-            'attr': attr,
-            'params': params,
             'test_losses': test_losses,
             'metrics': metrics,
             'isnan': isnan,
