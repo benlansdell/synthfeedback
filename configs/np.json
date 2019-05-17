@@ -101,7 +101,7 @@
 
 {
   "exp_name": "nodepert_ae5_matched_convparams",
-  "num_epochs": 1000,
+  "num_epochs": 350,
   "num_iter_per_epoch": 1000,
   "learning_rate": 1e-4,
   "lmda_learning_rate": 8e-6,
