@@ -26,12 +26,12 @@ def main():
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
-    config = process_config('./configs/np.json', model_name)
+    config = process_config('./configs/np_optimized.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     N = 1
     #M = 5
-    M = 1
+    M = 10
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))
