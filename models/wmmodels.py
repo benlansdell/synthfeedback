@@ -6,14 +6,14 @@ import numpy as np
 
 from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
 
-from npmodels import weight_variable,bias_variable,weight_w_bias,fc_layer, fa_layer,fc_layer_noise,tf_align
+from models.npmodels import weight_variable,bias_variable,weight_w_bias,fc_layer, fa_layer,fc_layer_noise_act,tf_align
 
 class WMModel4(BaseModel):
     #Four layers version
     def __init__(self, config):
         super(WMModel4, self).__init__(config)
         self.build_model()
-        self.init_saver()
+       # self.init_saver()
 
     def build_model(self):
         self.is_training = tf.placeholder(tf.bool)
@@ -22,6 +22,7 @@ class WMModel4(BaseModel):
 
         # set initial feedforward and feedback weights
         p = self.config.state_size[0]
+        lamba=self.config.lamba
         #m = 512
         #j = 200
         m = 50
@@ -76,30 +77,31 @@ class WMModel4(BaseModel):
             d1 = np.multiply(h1_prime_0, lmda1)
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
             p1=tf.random_normal(shape=tf.shape(h1_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
-            p2=tf.random_normal(shape=tf.shape(h2_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
+            p2=tf.random_normal(shape=tf.shape(h2_0_aug), mean=0.0, stddev=var_xi, dtype=tf.float32)
 
             p12= tf.sigmoid(tf.matmul(p1, W1))#perturbation of layer 1 going to 2
-            p12_mean=p12-tf.mean(p12,axis=0)
+            p12_mean=p12-tf.reduce_mean(p12,axis=0)
             
             p2y=tf.sigmoid(tf.matmul(p2, W2))#perturbation of layer 2 going to y
-            p2y_mean=p2y-tf.mean(p2y,axis=0)
+            p2y_mean=p2y-tf.reduce_mean(p2y,axis=0)
             
-            grad_B1 = tf.matmul(tf.transpose(p1),p12_mean)-self.config.lambda*B1
-            grad_B2 = tf.matmul(tf.transpose(p2),p2y_mean)-self.config.lambda*B2
+            #print(self.config.lambda)
+            grad_B1 = tf.matmul(tf.transpose(p1),p12_mean)+self.config.lamba*B1/self.config.learning_rate_b
+            grad_B2 = tf.matmul(tf.transpose(p2),p2y_mean)+self.config.lamba*B2/self.config.learning_rate_b
 
             new_W1 = W1.assign(W1 - self.config.learning_rate*grad_W1)
             new_W2 = W2.assign(W2 - self.config.learning_rate*grad_W2)
             new_A = A.assign(A - self.config.learning_rate*grad_A)
 
             #Train with SGD
-            new_B1 = B1.assign(B1 - self.config.lmda_learning_rate*grad_B1)
-            new_B2 = B2.assign(B2 - self.config.lmda_learning_rate*grad_B2)
+            new_B1 = B1.assign(B1 - self.config.learning_rate_b*grad_B1)
+            new_B2 = B2.assign(B2 - self.config.learning_rate_b*grad_B2)
 
             self.train_step = [new_W1, new_A, new_B1, new_W2, new_B2]
             
-            self.train_step_mirror = [new_B1, new_B2]
+            self.train_step_warmup = [new_B1, new_B2] #Initiate weight mirror step
 
-            correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
+            correct_prediction = tf.equal(tf.argmax(y_p_0,1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
             #Save training metrics

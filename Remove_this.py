@@ -30,6 +30,7 @@ def set_random_hyperparameters(config, attrs, ranges, log_scale):
             val = np.power(10, val)
         setattr(config, attrs[idx], val)
         params.append(val)
+        print(attr,params)
     return params
 
 def set_hyperparameters(config, attr, vals):
@@ -54,7 +55,7 @@ def main():
     attr = ['learning_rate','learning_rate_b','lamba']
     attr_ranges = [[-1, -5], [-1,-5], [-2, -1]]
     log_scale = [True, True, True] 
-    N = 20
+    N = 3
     M = 1
     #config.num_epoch=5
     #print("\n\n",config.num_epoch)
@@ -68,59 +69,63 @@ def main():
 
     tfconfig = tf.ConfigProto()
     tfconfig.gpu_options.allow_growth = True
+    rando=dict()
     learning_rate=[]
     learning_rate_b=[]
     lamba=[]
     for n in range(N):
         param = set_random_hyperparameters(config, attr, attr_ranges, log_scale) 
-        #print("Look Here",param)
+        print("Look Here",param)
+
         learning_rate.append(param[0])
         learning_rate_b.append(param[1])
         lamba.append(param[2])
-        model = Model(config)
-        #print("\n\n",config.num_epoch)
-        data = Data(config)
-            #print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
-        for m in range(M):
-            with tf.Session(config=tfconfig) as sess:
-                #options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                #run_metadata = tf.RunMetadata()
-                logger = LoggerNumpy(sess, config, model)
-                model.load(sess)
-                #trainer = Trainer(sess, model, data, config, logger, options, run_metadata)
-                trainer = Trainer(sess, model, data, config, logger)
-                try:
-                    trainer.train()
-                except ValueError:
-                    print("Method fails to converge for these parameters")
-                    isnan[n,m] = 1
-                loss, acc = trainer.test()
-                metric = logger.get_data()
-                tags = logger.get_tags()
-                test_losses[n,m] = loss
-                metrics[n,m,:,:] = metric
+    rando['lamba']=lamba
+    rando['l']=learning_rate
+    rando['l_b']=learning_rate_b
+    with open("Ignore.p","wb") as f:
+        pickle.dump([rando],f)
+        #model = Model(config)
+        ##print("\n\n",config.num_epoch)
+        #data = Data(config)
+         #   #print('Hyperparameters: ' + attr[0] + ' = %f'%var_vals[n])
+        #for m in range(M):
+          #  with tf.Session(config=tfconfig) as sess:
+           #     #options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+            #    #run_metadata = tf.RunMetadata()
+             #   logger = LoggerNumpy(sess, config, model)
+              #  model.load(sess)
+               # #trainer = Trainer(sess, model, data, config, logger, options, run_metadata)
+                #trainer = Trainer(sess, model, data, config, logger)
+                #try:
+                 #   trainer.train()
+               # except ValueError:
+                #    print("Method fails to converge for these parameters")
+                #    isnan[n,m] = 1
+                #loss, acc = trainer.test()
+                        #metric = logger.get_data()
+                #tags = logger.get_tags()
+                #test_losses[n,m] = loss
+                #metrics[n,m,:,:] = metric
 
-                #fetched_timeline = timeline.Timeline(run_metadata.step_stats)
-                #chrome_trace = fetched_timeline.generate_chrome_trace_format()
-                #with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
-                #    f.write(chrome_trace)
+            #    #fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+             #   #chrome_trace = fetched_timeline.generate_chrome_trace_format()
+              #  #with open('./timeline_02_n_%d_m_%d.json'%(n,m), 'w') as f:
+               # #    f.write(chrome_trace)
 
-        #Save after each run
-        fn = os.path.join(config.summary_dir) + "WM_4layer(condnum).npz"
-        to_save = {
-            'test_losses': test_losses,
-            'metrics': metrics,
-            'isnan': isnan,
-            'tags': tags,
-            'learning_rate':learning_rate,
-            'learning_rate_b':learning_rate_b,
-            'lamba':lamba
-        }
-       
-        pickle.dump(to_save, open(fn, "wb"))
+   #     #Save after each run
+    #    fn = os.path.join(config.summary_dir) + "WM_4layer(condnum).npz"
+     #   to_save = {
+      #      'test_losses': test_losses,
+       #     'metrics': metrics,
+        #    'isnan': isnan,
+         #   'tags': tags,
+          #  'params':param
+       # }
+        #pickle.dump(to_save, open(fn, "wb"))
 
     #np.savez(fn, test_losses=test_losses, metrics = metrics, isnan = isnan, tags = tags)
-    return metrics
+    #return metrics
 
 if __name__ == '__main__':
     main()

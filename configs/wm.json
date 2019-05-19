@@ -1,12 +1,13 @@
-{
+[{
   "exp_name": "WM_4layer",
-  "num_epochs": 100,
+  "num_epochs": 2000,
   "num_iter_per_epoch": 3000,
   "learning_rate": 0.001,
   "batch_size": 16,
   "learning_rate_b":0.1,
-  "lambda":0.5,
+  "lamba":0.5,
   "state_size": [784],
   "max_to_keep":5,
+  "var_xi": 0.1,
   "warmup_epoch":2
-}
+}]
