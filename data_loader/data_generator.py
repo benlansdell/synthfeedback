@@ -145,3 +145,45 @@ class MNISTDataGenerator(object):
 
     def test_batch(self, batch_size):
         yield self.mnist.test.next_batch(batch_size)
+
+
+##########################################################################
+
+def load_mnist(path, kind='train'):
+    import os
+    import gzip
+    import numpy as np
+    """Load MNIST data from `path`"""
+    labels_path = os.path.join(path,
+                               '%s-labels-idx1-ubyte.gz'
+                               % kind)
+    images_path = os.path.join(path,
+                               '%s-images-idx3-ubyte.gz'
+                               % kind)
+    with gzip.open(labels_path, 'rb') as lbpath:
+        labels = np.frombuffer(lbpath.read(), dtype=np.uint8,
+                               offset=8)
+    with gzip.open(images_path, 'rb') as imgpath:
+        images = np.frombuffer(imgpath.read(), dtype=np.uint8,
+                               offset=16).reshape(len(labels), 784)
+    return images, labels
+
+class FashionMNISTDataGenerator(object):
+    def __init__(self, config, path = '/home/lansdell/projects/fashion-mnist/data/fashion/'):
+        self.train_images, train_labels = load_mnist(path, kind = 'train')
+        self.test_images, test_labels = load_mnist(path, kind = 't10k')
+        self.n_train = self.train_images.shape[0]
+        self.n_test = self.test_images.shape[0]
+        self.train_labels = np.zeros((self.n_train, 10))
+        self.test_labels = np.zeros((self.n_test, 10))
+        self.train_labels[np.arange(self.n_train), train_labels] = 1
+        self.test_labels[np.arange(self.n_test), test_labels] = 1
+
+    def next_batch(self, batch_size):
+        #Generator a random sample of batch size
+        indices = rng.randint(0, self.n_train, batch_size)
+        yield (self.train_images[indices, :], self.train_labels[indices, :])
+
+    def test_batch(self, batch_size):
+        indices = rng.randint(0, self.n_train, batch_size)
+        yield (self.test_images[indices, :], self.test_labels[indices, :])
