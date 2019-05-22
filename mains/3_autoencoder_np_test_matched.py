@@ -1,13 +1,13 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]=""
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_CorrectGeom
+from models.npmodels import AENPModel5_Matched
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -20,9 +20,9 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_sgd_correctgeom'
+    model_name = 'nodepert_ae5_matched'
 
-    Model = AENPModel5_CorrectGeom
+    Model = AENPModel5_ADAM
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
@@ -30,8 +30,8 @@ def main():
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     N = 1
+    #M = 5
     M = 10
-    #M = 1
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))

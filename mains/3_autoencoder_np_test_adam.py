@@ -37,7 +37,7 @@ def main():
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
-    save_flag = False
+    save_flag = True
 
     for n in range(N):
         tf.reset_default_graph()
