@@ -20,9 +20,9 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    #model_name = 'nodepert_ae5_sgd_convparams'
-    #model_name = 'nodepert_ae5_fa_convparams'
-    model_name = 'nodepert_ae5_bp_convparams'
+    #model_name = 'nodepert_ae5_sgd_correctgeom'
+    #model_name = 'nodepert_ae5_faauto'
+    model_name = 'nodepert_ae5_bpauto'
 
     #Model = AENPModel5
     #Model = AENPModel5_ExactLsq
@@ -33,13 +33,13 @@ def main():
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
-    config = process_config('./configs/np.json', model_name)
+    config = process_config('./configs/np_optimized.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     #var_vals = [1e-2]
     N = 1
     #M = 5
-    M = 3
+    M = 10
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))

@@ -174,10 +174,8 @@ class NPModel4_ExactLsq(BaseModel):
     #Four layers version
     def __init__(self, config):
         super(NPModel4_ExactLsq, self).__init__(config)
-
         self.m = 50
         self.j = 20
-
         self.build_model()
         #Whether to save or not....
         #self.init_saver()

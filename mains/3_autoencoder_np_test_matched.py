@@ -1,13 +1,13 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 import tensorflow as tf
 import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5
+from models.npmodels import AENPModel5_Matched
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -20,23 +20,15 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    #model_name = 'nodepert_ae5_sgd_correctgeom'
-    model_name = 'nodepert_ae5_faauto'
-    #model_name = 'nodepert_ae5_bpauto'
+    model_name = 'nodepert_ae5_matched'
 
-    #Model = AENPModel5
-    #Model = AENPModel5_ExactLsq
-    #Model = AENPModel5_ExactLsq_BPAuto
-    #Model = AENPModel5_ExactLsq_BPSelf
-    Model = AENPModel5_ExactLsq_FAAuto
-    #Model = AENPModel5_ExactLsq_FASelf
+    Model = AENPModel5_Matched
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
     config = process_config('./configs/np_optimized.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
-    #var_vals = [1e-2]
     N = 1
     #M = 5
     M = 10
@@ -45,6 +37,7 @@ def main():
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
+    save_flag = True
 
     for n in range(N):
         tf.reset_default_graph()
@@ -73,7 +66,8 @@ def main():
             'isnan': isnan,
             'tags': tags
         }
-        pickle.dump(to_save, open(fn, "wb"))
+        if save_flag:
+            pickle.dump(to_save, open(fn, "wb"))
     return metrics
 
 if __name__ == '__main__':    

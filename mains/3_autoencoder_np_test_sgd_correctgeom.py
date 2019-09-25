@@ -20,24 +20,24 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_sgd_correctgeom_convparams'
+    model_name = 'nodepert_ae5_sgd_correctgeom'
 
     Model = AENPModel5_CorrectGeom
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
-    config = process_config('./configs/np.json', model_name)
+    config = process_config('./configs/np_optimized.json', model_name)
     create_dirs([config.summary_dir, config.checkpoint_dir])
 
     N = 1
-    #M = 5
-    M = 1
+    M = 10
+    #M = 1
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))
     isnan = np.zeros((N, M))
     metrics = np.zeros((N, M, T, n_tags))
-    save_flag = False
+    save_flag = True
 
     for n in range(N):
         tf.reset_default_graph()
