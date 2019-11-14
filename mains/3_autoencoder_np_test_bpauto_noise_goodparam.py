@@ -20,7 +20,7 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_bpauto'
+    model_name = 'nodepert_ae5_bpauto_noise'
 
     Model = AENPModel5_ExactLsq_BPAuto_Noise
     Data = MNISTDataGenerator

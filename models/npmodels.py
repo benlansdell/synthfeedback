@@ -1152,10 +1152,10 @@ class AENPModel5_ExactLsq_FAAuto_Noise(BaseModel):
             grad_A = tf.matmul(tf.transpose(x_aug), d1)
 
             #Compute updates for W and A (based on B)
-            grad_W3 = tf.gradients(xs=W3, ys=self.loss)[0]
-            grad_W2 = tf.gradients(xs=W2, ys=self.loss)[0]
-            grad_W1 = tf.gradients(xs=W1, ys=self.loss)[0]
-            grad_A = tf.gradients(xs=A, ys=self.loss)[0]
+            grad_W3 = tf.gradients(xs=W3, ys=self.loss_p)[0]
+            grad_W2 = tf.gradients(xs=W2, ys=self.loss_p)[0]
+            grad_W1 = tf.gradients(xs=W1, ys=self.loss_p)[0]
+            grad_A = tf.gradients(xs=A, ys=self.loss_p)[0]
 
             np_est1 = tf.transpose(xi1)*(self.loss_p - self.loss)/var_xi/var_xi
             np_est2 = tf.transpose(xi2)*(self.loss_p - self.loss)/var_xi/var_xi
@@ -1186,7 +1186,7 @@ class AENPModel5_ExactLsq_FAAuto_Noise(BaseModel):
             self.train_step = [new_W1, new_A, new_W2, new_W3]
             #FA
             #self.train_step = [new_W1, new_A, new_W2, new_W3]
-            self.train_step_warmup = [new_V1, new_S1, new_V2, new_S2, new_V3, new_S3]
+            self.train_step_warmup = []
 
             correct_prediction = tf.equal(tf.argmax(y_p, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))

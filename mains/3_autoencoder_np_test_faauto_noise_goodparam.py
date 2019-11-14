@@ -7,7 +7,7 @@ import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto_Noise, AENPModel5_ExactLsq_FASelf, AENPModel5
+from models.npmodels import AENPModel5_ExactLsq_FAAuto_Noise
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
