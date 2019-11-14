@@ -7,7 +7,7 @@ import numpy.random as rng
 import numpy as np
 import pickle
 from data_loader.data_generator import MNISTDataGenerator
-from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5_ExactLsq_FASelf, AENPModel5
+from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto_Noise, AENPModel5_ExactLsq_FASelf, AENPModel5
 from trainers.sf_trainer import AESFTrainer
 from utils.config import process_config
 from utils.dirs import create_dirs
@@ -20,9 +20,9 @@ def set_hyperparameters(config, attr, vals):
 
 def main():
     args = get_args()
-    model_name = 'nodepert_ae5_faself_noise'
+    model_name = 'nodepert_ae5_faauto_noise'
 
-    Model = AENPModel5_ExactLsq_FASelf_Noise
+    Model = AENPModel5_ExactLsq_FAAuto_Noise
     Data = MNISTDataGenerator
     Trainer = AESFTrainer
 
