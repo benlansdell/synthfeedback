@@ -1,6 +1,6 @@
 #!/usr/bin/env ipython
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 import tensorflow as tf
 import numpy.random as rng
@@ -32,7 +32,7 @@ def main():
     #var_vals = [1e-2]
     N = 1
     #M = 5
-    M = 3
+    M = 1
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))
