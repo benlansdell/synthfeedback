@@ -9,10 +9,10 @@ import pickle
 from data_loader.data_generator import MNISTDataGenerator
 from models.npmodels import AENPModel5_ExactLsq_BPAuto, AENPModel5_ExactLsq_FAAuto, AENPModel5_Matched
 from trainers.sf_trainer import AESFTrainer
-from utils.config import process_config
-from utils.dirs import create_dirs
-from utils.utils import get_args
-from utils.logger import LoggerNumpy, Logger
+from utilities.config import process_config
+from utilities.dirs import create_dirs
+from utilities.utils import get_args
+from utilities.logger import LoggerNumpy, Logger
 
 def set_hyperparameters(config, attr, vals):
     for idx, val in enumerate(vals):
@@ -39,7 +39,7 @@ def main():
     #var_vals = [1e-2]
     N = 1
     #M = 5
-    M = 1
+    M = 3
     T = config.num_epochs+1
     n_tags = 13
     test_losses = np.zeros((N, M))

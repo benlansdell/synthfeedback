@@ -4,7 +4,11 @@ import tensorflow as tf
 from numpy import random as rng
 import numpy as np 
 
-from utils.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
+#import sys
+#sys.path = ['../'] + sys.path
+
+from utilities.utils import tf_matmul_r, tf_matmul_l, tf_eigvecs, tf_eigvals
+#import utils.utils
 
 """Node perturbation models"""
 

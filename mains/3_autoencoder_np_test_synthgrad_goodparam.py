@@ -9,10 +9,10 @@ import pickle
 from data_loader.data_generator import MNISTDataGenerator
 from models.npmodels import AENPModel5_SynthGrad
 from trainers.sf_trainer import AESFTrainer
-from utils.config import process_config
-from utils.dirs import create_dirs
-from utils.utils import get_args
-from utils.logger import LoggerNumpy, Logger
+from utilities.config import process_config
+from utilities.dirs import create_dirs
+from utilities.utils import get_args
+from utilities.logger import LoggerNumpy, Logger
 
 def set_hyperparameters(config, attr, vals):
     for idx, val in enumerate(vals):
